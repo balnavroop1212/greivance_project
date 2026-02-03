@@ -29,44 +29,52 @@ class _LoginPageState extends State<LoginPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Login')),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Text(
-              'Complaint Box',
-              style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 40),
-            TextField(
-              controller: _phoneController,
-              decoration: const InputDecoration(
-                labelText: 'Phone Number',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.phone),
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const SizedBox(height: 40),
+              Image.asset(
+                'images/logo.png',
+                height: 150,
               ),
-              keyboardType: TextInputType.phone,
-            ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: _login,
-              style: ElevatedButton.styleFrom(
-                minimumSize: const Size.fromHeight(50),
+              const SizedBox(height: 20),
+              const Text(
+                'Complaint Box',
+                style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
               ),
-              child: const Text('Login'),
-            ),
-            const SizedBox(height: 10),
-            TextButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const SignupPage()),
-                );
-              },
-              child: const Text('Don\'t have an account? Sign Up'),
-            ),
-          ],
+              const SizedBox(height: 40),
+              TextField(
+                controller: _phoneController,
+                decoration: const InputDecoration(
+                  labelText: 'Phone Number',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.phone),
+                ),
+                keyboardType: TextInputType.phone,
+              ),
+              const SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: _login,
+                style: ElevatedButton.styleFrom(
+                  minimumSize: const Size.fromHeight(50),
+                ),
+                child: const Text('Login'),
+              ),
+              const SizedBox(height: 10),
+              TextButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const SignupPage()),
+                  );
+                },
+                child: const Text('Don\'t have an account? Sign Up'),
+              ),
+            ],
+          ),
         ),
       ),
     );
