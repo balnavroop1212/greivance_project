@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'login_page.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -419,7 +420,11 @@ class ProfileScreen extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 40),
               child: OutlinedButton(
                 onPressed: () {
-                  Navigator.of(context).popUntil((route) => route.isFirst);
+                  Navigator.pushAndRemoveUntil(
+                    context,
+                    MaterialPageRoute(builder: (context) => const LoginPage()),
+                    (route) => false,
+                  );
                 },
                 style: OutlinedButton.styleFrom(
                   minimumSize: const Size.fromHeight(50),
