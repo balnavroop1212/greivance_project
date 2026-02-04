@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'login_page.dart';
 
 class HomePage extends StatelessWidget {
-  const HomePage({super.key});
+  final String userName;
+  final String phone;
+
+  const HomePage({super.key, this.userName = 'User', this.phone = ''});
 
   @override
   Widget build(BuildContext context) {
@@ -18,7 +22,9 @@ class HomePage extends StatelessWidget {
             onTap: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => const ProfileScreen()),
+                MaterialPageRoute(
+                  builder: (context) => ProfileScreen(userName: userName, phone: phone),
+                ),
               );
             },
             child: CircleAvatar(
@@ -56,24 +62,24 @@ class HomePage extends StatelessWidget {
                       child: Icon(Icons.person, size: 40, color: Colors.blue),
                     ),
                     const SizedBox(width: 20),
-                    const Column(
+                    Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
+                        const Text(
                           'Welcome back,',
                           style: TextStyle(color: Colors.white70, fontSize: 14),
                         ),
                         Text(
-                          'User Name',
-                          style: TextStyle(
+                          userName,
+                          style: const TextStyle(
                             color: Colors.white,
                             fontSize: 22,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                         Text(
-                          '+91 9876543210',
-                          style: TextStyle(color: Colors.white70, fontSize: 16),
+                          '+91 $phone',
+                          style: const TextStyle(color: Colors.white70, fontSize: 16),
                         ),
                       ],
                     ),
@@ -90,7 +96,7 @@ class HomePage extends StatelessWidget {
                 onTap: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => const ComplaintScreen()),
+                    MaterialPageRoute(builder: (context) => ComplaintScreen(phone: phone)),
                   );
                 },
               ),
@@ -180,14 +186,18 @@ class HomePage extends StatelessWidget {
 }
 
 class ComplaintScreen extends StatefulWidget {
-  const ComplaintScreen({super.key});
+  final String phone;
+  const ComplaintScreen({super.key, required this.phone});
 
   @override
   State<ComplaintScreen> createState() => _ComplaintScreenState();
 }
 
 class _ComplaintScreenState extends State<ComplaintScreen> {
+  final TextEditingController _descriptionController = TextEditingController();
   String? selectedCategory;
+  bool _isSubmitting = false;
+
   final List<Map<String, dynamic>> categories = [
     {'name': 'Electricity', 'icon': Icons.flash_on},
     {'name': 'Plumber', 'icon': Icons.plumbing},
@@ -196,6 +206,54 @@ class _ComplaintScreenState extends State<ComplaintScreen> {
     {'name': 'Internet', 'icon': Icons.wifi},
     {'name': 'Others', 'icon': Icons.more_horiz},
   ];
+
+  Future<void> _submitGrievance() async {
+    if (selectedCategory == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please select a category')),
+      );
+      return;
+    }
+    if (_descriptionController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter a description')),
+      );
+      return;
+    }
+
+    setState(() {
+      _isSubmitting = true;
+    });
+
+    try {
+      await FirebaseFirestore.instance.collection('grievances').add({
+        'category': selectedCategory,
+        'description': _descriptionController.text.trim(),
+        'userId': widget.phone,
+        'status': 'Pending',
+        'timestamp': FieldValue.serverTimestamp(),
+      });
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Grievance submitted successfully!')),
+        );
+        Navigator.pop(context);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error submitting grievance: $e')),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isSubmitting = false;
+        });
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -261,9 +319,10 @@ class _ComplaintScreenState extends State<ComplaintScreen> {
               const SizedBox(height: 30),
               const Text('Description', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
               const SizedBox(height: 12),
-              const TextField(
+              TextField(
+                controller: _descriptionController,
                 maxLines: 5,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   hintText: 'Describe your issue in detail...',
                   border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(12))),
                 ),
@@ -288,20 +347,14 @@ class _ComplaintScreenState extends State<ComplaintScreen> {
               ),
               const SizedBox(height: 40),
               ElevatedButton(
-                onPressed: () {
-                  if (selectedCategory == null) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Please select a category')),
-                    );
-                    return;
-                  }
-                  // Submit logic
-                },
+                onPressed: _isSubmitting ? null : _submitGrievance,
                 style: ElevatedButton.styleFrom(
                   minimumSize: const Size.fromHeight(55),
                   elevation: 4,
                 ),
-                child: const Text('Submit Complaint', style: TextStyle(fontSize: 18)),
+                child: _isSubmitting 
+                    ? const CircularProgressIndicator(color: Colors.white) 
+                    : const Text('Submit Complaint', style: TextStyle(fontSize: 18)),
               ),
             ],
           ),
@@ -380,7 +433,10 @@ class HistoryScreen extends StatelessWidget {
 }
 
 class ProfileScreen extends StatelessWidget {
-  const ProfileScreen({super.key});
+  final String userName;
+  final String phone;
+
+  const ProfileScreen({super.key, required this.userName, required this.phone});
 
   @override
   Widget build(BuildContext context) {
@@ -412,9 +468,9 @@ class ProfileScreen extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 24),
-            const Text('User Name', style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold)),
+            Text(userName, style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
-            Text('+91 9876543210', style: TextStyle(fontSize: 18, color: Colors.grey.shade600)),
+            Text('+91 $phone', style: TextStyle(fontSize: 18, color: Colors.grey.shade600)),
             const SizedBox(height: 40),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 40),

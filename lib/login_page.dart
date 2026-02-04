@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'home_page.dart';
 import 'signup_page.dart';
 
@@ -12,18 +13,53 @@ class LoginPage extends StatefulWidget {
 
 class _LoginPageState extends State<LoginPage> {
   final TextEditingController _phoneController = TextEditingController();
+  bool _isLoading = false;
 
-  void _login() {
+  void _login() async {
     String phone = _phoneController.text.trim();
-    if (phone.length == 10 && RegExp(r'^[0-9]+$').hasMatch(phone)) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const HomePage()),
-      );
-    } else {
+    if (phone.length != 10 || !RegExp(r'^[0-9]+$').hasMatch(phone)) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please enter a valid 10-digit phone number')),
       );
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      var userDoc = await FirebaseFirestore.instance.collection('users').doc(phone).get();
+
+      if (userDoc.exists) {
+        String name = userDoc.data()?['name'] ?? 'User';
+        if (mounted) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => HomePage(userName: name, phone: phone),
+            ),
+          );
+        }
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('User not found. Please sign up.')),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: ${e.toString()}')),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -41,6 +77,7 @@ class _LoginPageState extends State<LoginPage> {
               Image.asset(
                 'images/logo.png',
                 height: 150,
+                errorBuilder: (context, error, stackTrace) => const Icon(Icons.business, size: 100, color: Colors.blue),
               ),
               const SizedBox(height: 20),
               const Text(
@@ -63,11 +100,13 @@ class _LoginPageState extends State<LoginPage> {
               ),
               const SizedBox(height: 20),
               ElevatedButton(
-                onPressed: _login,
+                onPressed: _isLoading ? null : _login,
                 style: ElevatedButton.styleFrom(
                   minimumSize: const Size.fromHeight(50),
                 ),
-                child: const Text('Login'),
+                child: _isLoading 
+                  ? const CircularProgressIndicator(color: Colors.white)
+                  : const Text('Login'),
               ),
               const SizedBox(height: 10),
               TextButton(

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'home_page.dart';
 
 class SignupPage extends StatefulWidget {
@@ -11,17 +12,63 @@ class SignupPage extends StatefulWidget {
 class _SignupPageState extends State<SignupPage> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
+  bool _isLoading = false;
 
-  void _signup() {
-    if (_nameController.text.isNotEmpty && _phoneController.text.isNotEmpty) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const HomePage()),
-      );
-    } else {
+  void _signup() async {
+    String name = _nameController.text.trim();
+    String phone = _phoneController.text.trim();
+
+    if (name.isEmpty || phone.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please enter all details')),
       );
+      return;
+    }
+
+    if (phone.length != 10) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter a valid 10-digit phone number')),
+      );
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      // Check if user already exists
+      var userDoc = await FirebaseFirestore.instance.collection('users').doc(phone).get();
+      
+      if (userDoc.exists) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('User already exists with this phone number')),
+        );
+      } else {
+        // Create new user
+        await FirebaseFirestore.instance.collection('users').doc(phone).set({
+          'name': name,
+          'phone': phone,
+          'createdAt': FieldValue.serverTimestamp(),
+        });
+
+        if (mounted) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const HomePage()),
+          );
+        }
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: ${e.toString()}')),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -59,11 +106,13 @@ class _SignupPageState extends State<SignupPage> {
             ),
             const SizedBox(height: 20),
             ElevatedButton(
-              onPressed: _signup,
+              onPressed: _isLoading ? null : _signup,
               style: ElevatedButton.styleFrom(
                 minimumSize: const Size.fromHeight(50),
               ),
-              child: const Text('Sign Up'),
+              child: _isLoading 
+                ? const CircularProgressIndicator(color: Colors.white) 
+                : const Text('Sign Up'),
             ),
             TextButton(
               onPressed: () {

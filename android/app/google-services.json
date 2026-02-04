@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "51481951121",
+    "project_id": "greviance-62533",
+    "storage_bucket": "greviance-62533.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:51481951121:android:29f29e521ba73846513830",
+        "android_client_info": {
+          "package_name": "com.example.greviance"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA9aAE-BzTCGfWs9eBpsdYRxbU_vo7_Xsg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
