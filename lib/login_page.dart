@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'home_page.dart';
 import 'signup_page.dart';
 
@@ -13,14 +14,15 @@ class _LoginPageState extends State<LoginPage> {
   final TextEditingController _phoneController = TextEditingController();
 
   void _login() {
-    if (_phoneController.text.isNotEmpty) {
+    String phone = _phoneController.text.trim();
+    if (phone.length == 10 && RegExp(r'^[0-9]+$').hasMatch(phone)) {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const HomePage()),
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter your phone number')),
+        const SnackBar(content: Text('Please enter a valid 10-digit phone number')),
       );
     }
   }
@@ -54,6 +56,10 @@ class _LoginPageState extends State<LoginPage> {
                   prefixIcon: Icon(Icons.phone),
                 ),
                 keyboardType: TextInputType.phone,
+                inputFormatters: [
+                  FilteringTextInputFormatter.digitsOnly,
+                  LengthLimitingTextInputFormatter(10),
+                ],
               ),
               const SizedBox(height: 20),
               ElevatedButton(
