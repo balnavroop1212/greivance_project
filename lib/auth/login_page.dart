@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'home_page.dart';
+import '../screens/home_page.dart';
 import 'signup_page.dart';
 
 class LoginPage extends StatefulWidget {
