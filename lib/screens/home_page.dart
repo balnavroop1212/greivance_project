@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'complaint.dart';
 import 'history.dart';
 import 'profile.dart';
+import 'suggestions_page.dart';
 
 class HomePage extends StatelessWidget {
   final String userName;
@@ -111,6 +112,19 @@ class HomePage extends StatelessWidget {
                   Navigator.push(
                     context,
                     MaterialPageRoute(builder: (context) => const HistoryScreen()),
+                  );
+                },
+              ),
+              const SizedBox(height: 20),
+              _buildTab(
+                context,
+                title: 'Suggestions',
+                subtitle: 'Provide feedback or suggestions',
+                icon: Icons.lightbulb_outline_rounded,
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const SuggestionsPage()),
                   );
                 },
               ),
