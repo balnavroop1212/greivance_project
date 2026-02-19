@@ -64,26 +64,28 @@ class HomePage extends StatelessWidget {
                       child: Icon(Icons.person, size: 40, color: Colors.blue),
                     ),
                     const SizedBox(width: 20),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'Welcome back,',
-                          style: TextStyle(color: Colors.white70, fontSize: 14),
-                        ),
-                        Text(
-                          userName,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 22,
-                            fontWeight: FontWeight.bold,
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Welcome back,',
+                            style: TextStyle(color: Colors.white70, fontSize: 14),
                           ),
-                        ),
-                        Text(
-                          '+91 $phone',
-                          style: const TextStyle(color: Colors.white70, fontSize: 16),
-                        ),
-                      ],
+                          Text(
+                            userName,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 22,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          Text(
+                            '+91 $phone',
+                            style: const TextStyle(color: Colors.white70, fontSize: 16),
+                          ),
+                        ],
+                      ),
                     ),
                   ],
                 ),
@@ -111,7 +113,7 @@ class HomePage extends StatelessWidget {
                 onTap: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => const HistoryScreen()),
+                    MaterialPageRoute(builder: (context) => HistoryScreen(phone: phone)),
                   );
                 },
               ),
