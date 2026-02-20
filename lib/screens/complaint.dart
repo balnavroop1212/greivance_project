@@ -11,22 +11,100 @@ class ComplaintScreen extends StatefulWidget {
 
 class _ComplaintScreenState extends State<ComplaintScreen> {
   final TextEditingController _descriptionController = TextEditingController();
-  String? selectedCategory;
+  String? selectedCategoryName;
+  String? selectedSubCategory;
   bool _isSubmitting = false;
 
   final List<Map<String, dynamic>> categories = [
-    {'name': 'Electricity', 'icon': Icons.flash_on},
-    {'name': 'Plumber', 'icon': Icons.plumbing},
-    {'name': 'Dispensary', 'icon': Icons.local_hospital},
-    {'name': 'Food', 'icon': Icons.restaurant},
-    {'name': 'Internet', 'icon': Icons.wifi},
-    {'name': 'Others', 'icon': Icons.more_horiz},
+    {
+      'name': 'Electricity',
+      'icon': Icons.flash_on,
+      'subCategories': [
+        'Power outrage in classroom',
+        'Faulty switch/socket',
+        'Tube light not working',
+        'Fan not working',
+        'AC not working',
+        'Short circuit problem',
+        'Loose wiring',
+        'Generator backup issue',
+        'Corridor lights not working',
+      ]
+    },
+    {
+      'name': 'Plumber',
+      'icon': Icons.plumbing,
+      'subCategories': [
+        'Water leakage in washroom',
+        'Tap not working',
+        'Flush not working',
+        'Blocked drainage',
+        'Low water pressure',
+        'No water supply',
+        'Broken wash basin',
+        'Pipe burst',
+        'Water tank overflow'
+      ]
+    },
+    {
+      'name': 'Dispensary',
+      'icon': Icons.local_hospital,
+      'subCategories': [
+        'Medicine not available',
+        'Doctor not present',
+        'First-aid kit empty',
+        'Long waiting time',
+        'Staff misbehaviour',
+        'Expired medicines',
+        'Emergency response delay',
+        'Cleanlines issue',
+      ]
+    },
+    {
+      'name': 'Food',
+      'icon': Icons.restaurant,
+      'subCategories': [
+        'Poor food quality',
+        'Food hygiene issue',
+        'Stale food served',
+        'High pricing',
+        'Limited menu options',
+        'uncertain utensils',
+        'Water quality issue',
+        'Delay in serving',
+        'Staff behaviour issue'
+      ]
+    },
+    {
+      'name': 'Labs',
+      'icon': Icons.computer,
+      'subCategories': [
+        'Computers not working',
+        'Software not installed',
+        'Internet not working',
+        'Projector not working',
+        'Lab equipment damaged',
+        'Insufficient equipment',
+        'Safety equipment missing',
+        'AC/fan not working in lab',
+        'Seating arrangement issue'
+      ]
+    },
+    {'name': 'Others', 'icon': Icons.more_horiz, 'subCategories': []},
   ];
 
+  List<String> _currentSubCategories = [];
+
   Future<void> _submitGrievance() async {
-    if (selectedCategory == null) {
+    if (selectedCategoryName == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please select a category')),
+      );
+      return;
+    }
+    if (_currentSubCategories.isNotEmpty && selectedSubCategory == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please select a sub-category')),
       );
       return;
     }
@@ -43,7 +121,8 @@ class _ComplaintScreenState extends State<ComplaintScreen> {
 
     try {
       await FirebaseFirestore.instance.collection('grievances').add({
-        'category': selectedCategory,
+        'category': selectedCategoryName,
+        'subCategory': selectedSubCategory,
         'description': _descriptionController.text.trim(),
         'userId': widget.phone,
         'status': 'Pending',
@@ -89,11 +168,14 @@ class _ComplaintScreenState extends State<ComplaintScreen> {
                   scrollDirection: Axis.horizontal,
                   itemCount: categories.length,
                   itemBuilder: (context, index) {
-                    bool isSelected = selectedCategory == categories[index]['name'];
+                    final category = categories[index];
+                    bool isSelected = selectedCategoryName == category['name'];
                     return GestureDetector(
                       onTap: () {
                         setState(() {
-                          selectedCategory = categories[index]['name'];
+                          selectedCategoryName = category['name'];
+                          selectedSubCategory = null; // Reset sub-category
+                          _currentSubCategories = List<String>.from(category['subCategories'] ?? []);
                         });
                       },
                       child: Container(
@@ -113,12 +195,13 @@ class _ComplaintScreenState extends State<ComplaintScreen> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Icon(
-                              categories[index]['icon'],
+                              category['icon'],
                               color: isSelected ? Colors.white : Colors.blue.shade800,
                             ),
                             const SizedBox(height: 8),
                             Text(
-                              categories[index]['name'],
+                              category['name'],
+                              textAlign: TextAlign.center,
                               style: TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.bold,
@@ -132,6 +215,76 @@ class _ComplaintScreenState extends State<ComplaintScreen> {
                   },
                 ),
               ),
+
+              if (_currentSubCategories.isNotEmpty)
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: 24),
+                    const Text('Select Sub-Category', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 12),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: _currentSubCategories.map((subCategory) {
+                        final isSelected = selectedSubCategory == subCategory;
+                        return GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              selectedSubCategory = subCategory;
+                            });
+                          },
+                          child: Container(
+                            margin: const EdgeInsets.only(bottom: 12.0),
+                            padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 20.0),
+                            decoration: BoxDecoration(
+                              color: isSelected ? Colors.blue.shade800 : Colors.white,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: isSelected ? Colors.blue.shade800 : Colors.grey.shade300,
+                              ),
+                              boxShadow: isSelected
+                                  ? [
+                                      BoxShadow(
+                                        color: Colors.blue.withOpacity(0.3),
+                                        blurRadius: 8,
+                                        offset: const Offset(0, 4),
+                                      )
+                                    ]
+                                  : [
+                                      BoxShadow(
+                                        color: Colors.black.withOpacity(0.05),
+                                        blurRadius: 5,
+                                        offset: const Offset(0, 2),
+                                      )
+                                    ],
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    subCategory,
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                      color: isSelected ? Colors.white : Colors.grey.shade800,
+                                    ),
+                                  ),
+                                ),
+                                Icon(
+                                  Icons.arrow_forward_ios,
+                                  size: 16,
+                                  color: isSelected ? Colors.white : Colors.grey.shade400,
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                  ],
+                ),
+
               const SizedBox(height: 30),
               const Text('Description', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
               const SizedBox(height: 12),
