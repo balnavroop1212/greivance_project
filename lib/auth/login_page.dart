@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../screens/home_page.dart';
 import 'signup_page.dart';
 
@@ -33,6 +34,12 @@ class _LoginPageState extends State<LoginPage> {
 
       if (userDoc.exists) {
         String name = userDoc.data()?['name'] ?? 'User';
+        
+        // Save login state
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('user_phone', phone);
+        await prefs.setString('user_name', name);
+
         if (mounted) {
           Navigator.pushReplacement(
             context,
