@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class SuggestionsPage extends StatefulWidget {
-  const SuggestionsPage({super.key});
+  final String phone;
+  const SuggestionsPage({super.key, required this.phone});
 
   @override
   State<SuggestionsPage> createState() => _SuggestionsPageState();
@@ -10,11 +12,53 @@ class SuggestionsPage extends StatefulWidget {
 class _SuggestionsPageState extends State<SuggestionsPage> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _feedbackController = TextEditingController();
+  bool _isSubmitting = false;
 
   @override
   void dispose() {
     _feedbackController.dispose();
     super.dispose();
+  }
+
+  Future<void> _submitSuggestion() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    setState(() {
+      _isSubmitting = true;
+    });
+
+    try {
+      await FirebaseFirestore.instance.collection('suggestions').add({
+        'userId': widget.phone,
+        'feedback': _feedbackController.text.trim(),
+        'timestamp': FieldValue.serverTimestamp(),
+      });
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Thank you for your suggestion!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+        _feedbackController.clear();
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error submitting suggestion: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isSubmitting = false;
+        });
+      }
+    }
   }
 
   @override
@@ -94,18 +138,7 @@ class _SuggestionsPageState extends State<SuggestionsPage> {
                     width: double.infinity,
                     height: 55,
                     child: ElevatedButton(
-                      onPressed: () {
-                        if (_formKey.currentState!.validate()) {
-                          // Process the suggestion
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Thank you for your suggestion!'),
-                              backgroundColor: Colors.green,
-                            ),
-                          );
-                          _feedbackController.clear();
-                        }
-                      },
+                      onPressed: _isSubmitting ? null : _submitSuggestion,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.blue.shade800,
                         foregroundColor: Colors.white,
@@ -115,13 +148,15 @@ class _SuggestionsPageState extends State<SuggestionsPage> {
                         elevation: 5,
                         shadowColor: Colors.blue.withOpacity(0.3),
                       ),
-                      child: const Text(
-                        "Submit Feedback",
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
+                      child: _isSubmitting
+                          ? const CircularProgressIndicator(color: Colors.white)
+                          : const Text(
+                              "Submit Feedback",
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                     ),
                   ),
                 ],
