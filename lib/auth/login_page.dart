@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../screens/home_page.dart';
 import 'signup_page.dart';
@@ -12,14 +11,18 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  final TextEditingController _phoneController = TextEditingController();
+  final TextEditingController _idController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
   bool _isLoading = false;
+  bool _isPasswordVisible = false;
 
   void _login() async {
-    String phone = _phoneController.text.trim();
-    if (phone.length != 10 || !RegExp(r'^[0-9]+$').hasMatch(phone)) {
+    String rollNumber = _idController.text.trim();
+    String password = _passwordController.text.trim();
+
+    if (rollNumber.isEmpty || password.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter a valid 10-digit phone number')),
+        const SnackBar(content: Text('Please enter both Roll Number and Password')),
       );
       return;
     }
@@ -29,17 +32,28 @@ class _LoginPageState extends State<LoginPage> {
     });
 
     try {
-      var userDoc = await FirebaseFirestore.instance.collection('users').doc(phone).get();
+      // Assuming roll number is the document ID in 'users' collection
+      var userDoc = await FirebaseFirestore.instance.collection('users').doc(rollNumber).get();
 
       if (userDoc.exists) {
-        String name = userDoc.data()?['name'] ?? 'User';
-        if (mounted) {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (context) => HomePage(userName: name, phone: phone),
-            ),
-          );
+        String storedPassword = userDoc.data()?['password'] ?? '';
+        
+        if (password == storedPassword) {
+          String name = userDoc.data()?['name'] ?? 'User';
+          if (mounted) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => HomePage(userName: name, phone: rollNumber), // Keeping phone parameter name for compatibility
+              ),
+            );
+          }
+        } else {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Invalid password.')),
+            );
+          }
         }
       } else {
         if (mounted) {
@@ -86,17 +100,32 @@ class _LoginPageState extends State<LoginPage> {
               ),
               const SizedBox(height: 40),
               TextField(
-                controller: _phoneController,
+                controller: _idController,
                 decoration: const InputDecoration(
-                  labelText: 'Phone Number',
+                  labelText: 'Roll Number / ID',
                   border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.phone),
+                  prefixIcon: Icon(Icons.badge),
                 ),
-                keyboardType: TextInputType.phone,
-                inputFormatters: [
-                  FilteringTextInputFormatter.digitsOnly,
-                  LengthLimitingTextInputFormatter(10),
-                ],
+              ),
+              const SizedBox(height: 20),
+              TextField(
+                controller: _passwordController,
+                obscureText: !_isPasswordVisible,
+                decoration: InputDecoration(
+                  labelText: 'Password',
+                  border: const OutlineInputBorder(),
+                  prefixIcon: const Icon(Icons.lock),
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        _isPasswordVisible = !_isPasswordVisible;
+                      });
+                    },
+                  ),
+                ),
               ),
               const SizedBox(height: 20),
               ElevatedButton(
