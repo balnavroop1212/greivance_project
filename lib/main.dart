@@ -1,18 +1,31 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'firebase_options.dart';
 import 'auth/login_page.dart';
+import 'screens/home_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  runApp(const MyApp());
+  
+  // Check if user is already logged in
+  final prefs = await SharedPreferences.getInstance();
+  final String? phone = prefs.getString('user_phone');
+  final String? userName = prefs.getString('user_name');
+  
+  runApp(MyApp(
+    initialHome: (phone != null && userName != null)
+        ? HomePage(phone: phone, userName: userName)
+        : const LoginPage(),
+  ));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final Widget initialHome;
+  const MyApp({super.key, required this.initialHome});
 
   @override
   Widget build(BuildContext context) {
@@ -45,7 +58,7 @@ class MyApp extends StatelessWidget {
           ),
         ),
       ),
-      home: const LoginPage(),
+      home: initialHome,
     );
   }
 }
