@@ -64,7 +64,7 @@ class _SuggestionsPageState extends State<SuggestionsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[100],
+      backgroundColor: Colors.white,
       appBar: AppBar(
         title: const Text(
           "Suggestions",
@@ -106,7 +106,7 @@ class _SuggestionsPageState extends State<SuggestionsPage> {
                       borderRadius: BorderRadius.circular(15),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.05),
+                          color: Colors.black.withValues(alpha: 0.05),
                           blurRadius: 10,
                           offset: const Offset(0, 4),
                         ),
@@ -146,7 +146,7 @@ class _SuggestionsPageState extends State<SuggestionsPage> {
                           borderRadius: BorderRadius.circular(15),
                         ),
                         elevation: 5,
-                        shadowColor: Colors.blue.withOpacity(0.3),
+                        shadowColor: Colors.blue.withValues(alpha: 0.3),
                       ),
                       child: _isSubmitting
                           ? const CircularProgressIndicator(color: Colors.white)
