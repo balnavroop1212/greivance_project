@@ -187,7 +187,9 @@ class _ComplaintScreenState extends State<ComplaintScreen> {
     } catch (e) {
       debugPrint('Error picking image: $e');
     } finally {
-      setState(() => _isPickingImage = false);
+      if (mounted) {
+        setState(() => _isPickingImage = false);
+      }
     }
   }
 
@@ -251,6 +253,13 @@ class _ComplaintScreenState extends State<ComplaintScreen> {
         backgroundColor: Colors.white,
         elevation: 0,
         iconTheme: const IconThemeData(color: Colors.black),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          onPressed: () async {
+            await _clearDraft();
+            if (mounted) Navigator.pop(context);
+          },
+        ),
       ),
       body: SingleChildScrollView(
         child: Padding(
@@ -361,12 +370,21 @@ class _ComplaintScreenState extends State<ComplaintScreen> {
               const SizedBox(height: 12),
               Row(
                 children: [
-                  _buildAttachmentButton(icon: Icons.camera_alt_rounded, label: 'Camera', onTap: () => _pickImage(ImageSource.camera)),
+                  _buildAttachmentButton(
+                    icon: Icons.camera_alt_rounded, 
+                    label: 'Camera', 
+                    onTap: () => _pickImage(ImageSource.camera),
+                    isLoading: _isPickingImage,
+                  ),
                   const SizedBox(width: 16),
-                  _buildAttachmentButton(icon: Icons.photo_library_rounded, label: 'Gallery', onTap: () => _pickImage(ImageSource.gallery)),
+                  _buildAttachmentButton(
+                    icon: Icons.photo_library_rounded, 
+                    label: 'Gallery', 
+                    onTap: () => _pickImage(ImageSource.gallery),
+                    isLoading: _isPickingImage,
+                  ),
                 ],
               ),
-              
               if (_image != null) ...[
                 const SizedBox(height: 20),
                 Stack(
@@ -385,13 +403,16 @@ class _ComplaintScreenState extends State<ComplaintScreen> {
                       right: 10,
                       child: GestureDetector(
                         onTap: () => setState(() { _image = null; }),
-                        child: const CircleAvatar(backgroundColor: Colors.black54, radius: 18, child: Icon(Icons.close, color: Colors.white, size: 20)),
+                        child: const CircleAvatar(
+                          backgroundColor: Colors.black54, 
+                          radius: 18,
+                          child: Icon(Icons.close, color: Colors.white, size: 20)
+                        ),
                       ),
                     ),
                   ],
                 ),
               ],
-              
               const SizedBox(height: 40),
               SizedBox(
                 width: double.infinity,
@@ -404,7 +425,9 @@ class _ComplaintScreenState extends State<ComplaintScreen> {
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
                     elevation: 5,
                   ),
-                  child: _isSubmitting ? const CircularProgressIndicator(color: Colors.white) : const Text('Submit Complaint', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  child: _isSubmitting 
+                      ? const CircularProgressIndicator(color: Colors.white) 
+                      : const Text('Submit Complaint', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                 ),
               ),
             ],
@@ -414,10 +437,10 @@ class _ComplaintScreenState extends State<ComplaintScreen> {
     );
   }
 
-  Widget _buildAttachmentButton({required IconData icon, required String label, required VoidCallback onTap}) {
+  Widget _buildAttachmentButton({required IconData icon, required String label, required VoidCallback onTap, bool isLoading = false}) {
     return Expanded(
       child: InkWell(
-        onTap: _isPickingImage ? null : onTap,
+        onTap: isLoading ? null : onTap,
         borderRadius: BorderRadius.circular(15),
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 20),
@@ -429,7 +452,9 @@ class _ComplaintScreenState extends State<ComplaintScreen> {
           ),
           child: Column(
             children: [
-              Icon(icon, color: Colors.blue.shade800, size: 30),
+              isLoading 
+                  ? const SizedBox(height: 24, width: 24, child: CircularProgressIndicator(strokeWidth: 2))
+                  : Icon(icon, color: Colors.blue.shade800, size: 30),
               const SizedBox(height: 8),
               Text(label, style: TextStyle(color: Colors.blue.shade800, fontWeight: FontWeight.bold)),
             ],
