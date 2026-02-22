@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class SuggestionsPage extends StatefulWidget {
-  final String phone;
-  const SuggestionsPage({super.key, required this.phone});
+  final String userId;
+  const SuggestionsPage({super.key, required this.userId});
 
   @override
   State<SuggestionsPage> createState() => _SuggestionsPageState();
@@ -29,7 +29,7 @@ class _SuggestionsPageState extends State<SuggestionsPage> {
 
     try {
       await FirebaseFirestore.instance.collection('suggestions').add({
-        'userId': widget.phone,
+        'userId': widget.userId,
         'feedback': _feedbackController.text.trim(),
         'timestamp': FieldValue.serverTimestamp(),
       });

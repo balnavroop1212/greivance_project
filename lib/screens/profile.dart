@@ -3,47 +3,74 @@ import '../auth/login_page.dart';
 
 class ProfileScreen extends StatelessWidget {
   final String userName;
-  final String phone;
+  final String userId;
 
-  const ProfileScreen({super.key, required this.userName, required this.phone});
+  const ProfileScreen({super.key, required this.userName, required this.userId});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('My Profile')),
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        title: const Text('My Profile', style: TextStyle(fontWeight: FontWeight.bold)),
+        backgroundColor: Colors.white,
+        elevation: 0,
+      ),
       body: Center(
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
           children: [
+            const SizedBox(height: 40),
             Stack(
               children: [
                 CircleAvatar(
-                  radius: 60,
-                  backgroundColor: Colors.blue.shade100,
-                  child: Icon(Icons.person, size: 70, color: Colors.blue.shade800),
+                  radius: 65,
+                  backgroundColor: Colors.blue.shade50,
+                  child: Icon(Icons.person, size: 80, color: Colors.blue.shade800),
                 ),
                 Positioned(
                   bottom: 0,
-                  right: 0,
+                  right: 5,
                   child: Container(
                     padding: const EdgeInsets.all(8),
-                    decoration: const BoxDecoration(
-                      color: Colors.blue,
+                    decoration: BoxDecoration(
+                      color: Colors.blue.shade800,
                       shape: BoxShape.circle,
+                      border: Border.all(color: Colors.white, width: 3),
                     ),
-                    child: const Icon(Icons.edit, color: Colors.white, size: 20),
+                    child: const Icon(Icons.camera_alt, color: Colors.white, size: 20),
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 24),
-            Text(userName, style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 8),
-            Text('+91 $phone', style: TextStyle(fontSize: 18, color: Colors.grey.shade600)),
-            const SizedBox(height: 40),
+            const SizedBox(height: 30),
+            Text(
+              userName,
+              style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 10),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+              decoration: BoxDecoration(
+                color: Colors.grey.shade100,
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Text(
+                'Roll No: $userId',
+                style: TextStyle(fontSize: 18, color: Colors.grey.shade700, fontWeight: FontWeight.w500),
+              ),
+            ),
+            const Spacer(),
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 40),
-              child: OutlinedButton(
+              padding: const EdgeInsets.all(30.0),
+              child: ElevatedButton.styleFrom(
+                backgroundColor: Colors.white,
+                foregroundColor: Colors.red,
+                side: const BorderSide(color: Colors.red, width: 2),
+                elevation: 0,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                minimumSize: const Size.fromHeight(55),
+              ).build(
+                context,
                 onPressed: () {
                   Navigator.pushAndRemoveUntil(
                     context,
@@ -51,17 +78,26 @@ class ProfileScreen extends StatelessWidget {
                     (route) => false,
                   );
                 },
-                style: OutlinedButton.styleFrom(
-                  minimumSize: const Size.fromHeight(50),
-                  side: const BorderSide(color: Colors.red),
-                  foregroundColor: Colors.red,
+                child: const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.logout_rounded),
+                    SizedBox(width: 10),
+                    Text('Logout', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  ],
                 ),
-                child: const Text('Logout'),
               ),
             ),
           ],
         ),
       ),
     );
+  }
+}
+
+// Extension to use styleFrom more easily in ElevatedButton
+extension on ButtonStyle {
+  Widget build(BuildContext context, {required VoidCallback onPressed, required Widget child}) {
+    return ElevatedButton(style: this, onPressed: onPressed, child: child);
   }
 }

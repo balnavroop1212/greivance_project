@@ -6,9 +6,9 @@ import 'suggestions_page.dart';
 
 class HomePage extends StatelessWidget {
   final String userName;
-  final String phone;
+  final String userId;
 
-  const HomePage({super.key, this.userName = 'User', this.phone = ''});
+  const HomePage({super.key, this.userName = 'User', this.userId = ''});
 
   @override
   Widget build(BuildContext context) {
@@ -25,7 +25,7 @@ class HomePage extends StatelessWidget {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => ProfileScreen(userName: userName, phone: phone),
+                  builder: (context) => ProfileScreen(userName: userName, userId: userId),
                 ),
               );
             },
@@ -81,7 +81,7 @@ class HomePage extends StatelessWidget {
                             ),
                           ),
                           Text(
-                            '+91 $phone',
+                            'Roll No: $userId',
                             style: const TextStyle(color: Colors.white70, fontSize: 16),
                           ),
                         ],
@@ -100,7 +100,7 @@ class HomePage extends StatelessWidget {
                 onTap: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => ComplaintScreen(phone: phone)),
+                    MaterialPageRoute(builder: (context) => ComplaintScreen(userId: userId)),
                   );
                 },
               ),
@@ -113,7 +113,7 @@ class HomePage extends StatelessWidget {
                 onTap: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => HistoryScreen(phone: phone)),
+                    MaterialPageRoute(builder: (context) => HistoryScreen(userId: userId)),
                   );
                 },
               ),
@@ -126,7 +126,7 @@ class HomePage extends StatelessWidget {
                 onTap: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => SuggestionsPage(phone: phone)),
+                    MaterialPageRoute(builder: (context) => SuggestionsPage(userId: userId)),
                   );
                 },
               ),

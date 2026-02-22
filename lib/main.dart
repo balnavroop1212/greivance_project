@@ -13,12 +13,12 @@ void main() async {
   
   // Check if user is already logged in
   final prefs = await SharedPreferences.getInstance();
-  final String? phone = prefs.getString('user_phone');
+  final String? userId = prefs.getString('user_id');
   final String? userName = prefs.getString('user_name');
   
   runApp(MyApp(
-    initialHome: (phone != null && userName != null)
-        ? HomePage(phone: phone, userName: userName)
+    initialHome: (userId != null && userName != null)
+        ? HomePage(userId: userId, userName: userName)
         : const LoginPage(),
   ));
 }

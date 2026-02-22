@@ -2,15 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class HistoryScreen extends StatelessWidget {
-  final String phone;
-  const HistoryScreen({super.key, required this.phone});
+  final String userId;
+  const HistoryScreen({super.key, required this.userId});
 
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
       length: 4,
       child: Scaffold(
-        backgroundColor: Colors.grey[100],
+        backgroundColor: Colors.white,
         appBar: AppBar(
           title: const Text('Complaint History', style: TextStyle(fontWeight: FontWeight.bold)),
           backgroundColor: Colors.white,
@@ -44,7 +44,7 @@ class HistoryScreen extends StatelessWidget {
   Widget _buildComplaintList(String? filterStatus) {
     Query query = FirebaseFirestore.instance
         .collection('grievances')
-        .where('userId', isEqualTo: phone);
+        .where('userId', isEqualTo: userId);
 
     if (filterStatus != null) {
       query = query.where('status', isEqualTo: filterStatus);
@@ -109,7 +109,7 @@ class HistoryScreen extends StatelessWidget {
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
+                    color: Colors.black.withValues(alpha: 0.05),
                     blurRadius: 10,
                     offset: const Offset(0, 4),
                   ),
@@ -169,9 +169,9 @@ class HistoryScreen extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: color.withOpacity(0.5)),
+        border: Border.all(color: color.withValues(alpha: 0.5)),
       ),
       child: Text(
         status,
