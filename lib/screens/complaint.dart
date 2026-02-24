@@ -115,12 +115,15 @@ class _ComplaintScreenState extends State<ComplaintScreen> {
 
   Future<void> _handleLostData() async {
     if (Platform.isAndroid) {
-      final LostDataResponse response = await _picker.retrieveLostData();
-      if (response.isEmpty) return;
-      if (response.file != null) {
+      try {
+        final LostDataResponse response = await _picker.retrieveLostData();
+        if (response.isEmpty || response.file == null) return;
+        
         setState(() {
           _image = File(response.file!.path);
         });
+      } catch (e) {
+        debugPrint('Error retrieving lost data: $e');
       }
     }
   }
@@ -139,8 +142,8 @@ class _ComplaintScreenState extends State<ComplaintScreen> {
 
   Future<void> _loadDraft() async {
     final prefs = await SharedPreferences.getInstance();
-    final bool? isFiling = prefs.getBool('is_filing_complaint');
-    if (isFiling == false) return;
+    final bool isFiling = prefs.getBool('is_filing_complaint') ?? false;
+    if (!isFiling) return;
 
     final String? savedDesc = prefs.getString('draft_desc');
     final String? savedCat = prefs.getString('draft_cat');
@@ -190,7 +193,9 @@ class _ComplaintScreenState extends State<ComplaintScreen> {
     } catch (e) {
       debugPrint('Error picking image: $e');
     } finally {
-      setState(() => _isPickingImage = false);
+      if (mounted) {
+        setState(() => _isPickingImage = false);
+      }
     }
   }
 
@@ -212,10 +217,20 @@ class _ComplaintScreenState extends State<ComplaintScreen> {
     try {
       String? imageUrl;
       if (_image != null) {
+        if (!await _image!.exists()) {
+          throw Exception("Selected image file not found on device.");
+        }
+        
         String fileName = 'complaint_${DateTime.now().millisecondsSinceEpoch}.jpg';
         Reference ref = FirebaseStorage.instance.ref().child('complaints').child(fileName);
-        await ref.putFile(_image!);
-        imageUrl = await ref.getDownloadURL();
+        
+        // Use try-catch specifically for the upload
+        try {
+          await ref.putFile(_image!);
+          imageUrl = await ref.getDownloadURL();
+        } on FirebaseException catch (e) {
+          throw Exception("Firebase Storage error: ${e.message}");
+        }
       }
 
       await FirebaseFirestore.instance.collection('grievances').add({

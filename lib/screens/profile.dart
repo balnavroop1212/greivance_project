@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../auth/login_page.dart';
 
 class ProfileScreen extends StatelessWidget {
@@ -6,6 +7,20 @@ class ProfileScreen extends StatelessWidget {
   final String userId;
 
   const ProfileScreen({super.key, required this.userName, required this.userId});
+
+  Future<void> _logout(BuildContext context) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('user_id');
+    await prefs.remove('user_name');
+    
+    if (context.mounted) {
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (context) => const LoginPage()),
+        (route) => false,
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -62,22 +77,16 @@ class ProfileScreen extends StatelessWidget {
             const Spacer(),
             Padding(
               padding: const EdgeInsets.all(30.0),
-              child: ElevatedButton.styleFrom(
-                backgroundColor: Colors.white,
-                foregroundColor: Colors.red,
-                side: const BorderSide(color: Colors.red, width: 2),
-                elevation: 0,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-                minimumSize: const Size.fromHeight(55),
-              ).build(
-                context,
-                onPressed: () {
-                  Navigator.pushAndRemoveUntil(
-                    context,
-                    MaterialPageRoute(builder: (context) => const LoginPage()),
-                    (route) => false,
-                  );
-                },
+              child: ElevatedButton(
+                onPressed: () => _logout(context),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.white,
+                  foregroundColor: Colors.red,
+                  side: const BorderSide(color: Colors.red, width: 2),
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                  minimumSize: const Size.fromHeight(55),
+                ),
                 child: const Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -92,12 +101,5 @@ class ProfileScreen extends StatelessWidget {
         ),
       ),
     );
-  }
-}
-
-// Extension to use styleFrom more easily in ElevatedButton
-extension on ButtonStyle {
-  Widget build(BuildContext context, {required VoidCallback onPressed, required Widget child}) {
-    return ElevatedButton(style: this, onPressed: onPressed, child: child);
   }
 }
