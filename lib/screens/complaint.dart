@@ -105,8 +105,8 @@ class _ComplaintScreenState extends State<ComplaintScreen> {
   @override
   void initState() {
     super.initState();
-    _loadDraft();
-    _handleLostData();
+    // Start with a clean form every time the page is opened
+    _clearDraft();
     
     _descriptionController.addListener(() {
       _saveDraft();
@@ -122,6 +122,7 @@ class _ComplaintScreenState extends State<ComplaintScreen> {
         setState(() {
           _image = File(response.file!.path);
         });
+        _saveDraft();
       } catch (e) {
         debugPrint('Error retrieving lost data: $e');
       }
@@ -137,6 +138,9 @@ class _ComplaintScreenState extends State<ComplaintScreen> {
     if (selectedSubCategory != null) {
       await prefs.setString('draft_subcat', selectedSubCategory!);
     }
+    if (_image != null) {
+      await prefs.setString('draft_image', _image!.path);
+    }
     await prefs.setBool('is_filing_complaint', true);
   }
 
@@ -148,6 +152,7 @@ class _ComplaintScreenState extends State<ComplaintScreen> {
     final String? savedDesc = prefs.getString('draft_desc');
     final String? savedCat = prefs.getString('draft_cat');
     final String? savedSubCat = prefs.getString('draft_subcat');
+    final String? savedImagePath = prefs.getString('draft_image');
 
     setState(() {
       if (savedDesc != null) _descriptionController.text = savedDesc;
@@ -162,6 +167,9 @@ class _ComplaintScreenState extends State<ComplaintScreen> {
         }
       }
       selectedSubCategory = savedSubCat;
+      if (savedImagePath != null) {
+        _image = File(savedImagePath);
+      }
     });
   }
 
@@ -170,6 +178,7 @@ class _ComplaintScreenState extends State<ComplaintScreen> {
     await prefs.remove('draft_desc');
     await prefs.remove('draft_cat');
     await prefs.remove('draft_subcat');
+    await prefs.remove('draft_image');
     await prefs.setBool('is_filing_complaint', false);
   }
 
@@ -189,6 +198,7 @@ class _ComplaintScreenState extends State<ComplaintScreen> {
         setState(() {
           _image = File(pickedFile.path);
         });
+        _saveDraft();
       }
     } catch (e) {
       debugPrint('Error picking image: $e');
@@ -224,7 +234,6 @@ class _ComplaintScreenState extends State<ComplaintScreen> {
         String fileName = 'complaint_${DateTime.now().millisecondsSinceEpoch}.jpg';
         Reference ref = FirebaseStorage.instance.ref().child('complaints').child(fileName);
         
-        // Use try-catch specifically for the upload
         try {
           await ref.putFile(_image!);
           imageUrl = await ref.getDownloadURL();
@@ -262,173 +271,183 @@ class _ComplaintScreenState extends State<ComplaintScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        title: const Text('File Complaint', style: TextStyle(fontWeight: FontWeight.bold)),
+    return PopScope(
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) {
+          _clearDraft(); // Lose progress when explicitly leaving the page
+        }
+      },
+      child: Scaffold(
         backgroundColor: Colors.white,
-        elevation: 0,
-        iconTheme: const IconThemeData(color: Colors.black),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => Navigator.pop(context),
+        appBar: AppBar(
+          title: const Text('File Complaint', style: TextStyle(fontWeight: FontWeight.bold)),
+          backgroundColor: Colors.white,
+          elevation: 0,
+          iconTheme: const IconThemeData(color: Colors.black),
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back, color: Colors.black),
+            onPressed: () => Navigator.pop(context),
+          ),
         ),
-      ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(20.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text('Select Category', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.blue)),
-              const SizedBox(height: 16),
-              SizedBox(
-                height: 100,
-                child: ListView.builder(
-                  scrollDirection: Axis.horizontal,
-                  itemCount: categories.length,
-                  itemBuilder: (context, index) {
-                    final category = categories[index];
-                    bool isSelected = selectedCategoryName == category['name'];
-                    return GestureDetector(
-                      onTap: () {
-                        setState(() {
-                          selectedCategoryName = category['name'];
-                          selectedSubCategory = null;
-                          _currentSubCategories = List<String>.from(category['subCategories'] ?? []);
-                        });
-                        _saveDraft();
-                      },
-                      child: Container(
-                        width: 90,
-                        margin: const EdgeInsets.only(right: 12),
-                        decoration: BoxDecoration(
-                          color: isSelected ? Colors.blue.shade800 : Colors.white,
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: isSelected ? Colors.blue.shade800 : Colors.grey.shade300),
-                          boxShadow: isSelected ? [BoxShadow(color: Colors.blue.withValues(alpha: 0.3), blurRadius: 8, offset: const Offset(0, 4))] : [],
+        body: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('Select Category', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.blue)),
+                const SizedBox(height: 16),
+                SizedBox(
+                  height: 100,
+                  child: ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: categories.length,
+                    itemBuilder: (context, index) {
+                      final category = categories[index];
+                      bool isSelected = selectedCategoryName == category['name'];
+                      return GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            selectedCategoryName = category['name'];
+                            selectedSubCategory = null;
+                            _currentSubCategories = List<String>.from(category['subCategories'] ?? []);
+                          });
+                          _saveDraft();
+                        },
+                        child: Container(
+                          width: 90,
+                          margin: const EdgeInsets.only(right: 12),
+                          decoration: BoxDecoration(
+                            color: isSelected ? Colors.blue.shade800 : Colors.white,
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(color: isSelected ? Colors.blue.shade800 : Colors.grey.shade300),
+                            boxShadow: isSelected ? [BoxShadow(color: Colors.blue.withValues(alpha: 0.3), blurRadius: 8, offset: const Offset(0, 4))] : [],
+                          ),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(category['icon'], color: isSelected ? Colors.white : Colors.blue.shade800, size: 28),
+                              const SizedBox(height: 8),
+                              Text(category['name'], textAlign: TextAlign.center, style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: isSelected ? Colors.white : Colors.grey.shade700)),
+                            ],
+                          ),
                         ),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(category['icon'], color: isSelected ? Colors.white : Colors.blue.shade800, size: 28),
-                            const SizedBox(height: 8),
-                            Text(category['name'], textAlign: TextAlign.center, style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: isSelected ? Colors.white : Colors.grey.shade700)),
-                          ],
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              ),
-              
-              if (_currentSubCategories.isNotEmpty) ...[
-                const SizedBox(height: 30),
-                const Text('Select Sub-Category', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.blue)),
-                const SizedBox(height: 12),
-                Column(
-                  children: _currentSubCategories.map((sub) {
-                    final isSelected = selectedSubCategory == sub;
-                    return GestureDetector(
-                      onTap: () {
-                        setState(() => selectedSubCategory = sub);
-                        _saveDraft();
-                      },
-                      child: Container(
-                        margin: const EdgeInsets.only(bottom: 10),
-                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                        decoration: BoxDecoration(
-                          color: isSelected ? Colors.blue.shade800 : Colors.grey.shade50,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: isSelected ? Colors.blue.shade800 : Colors.grey.shade200),
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(sub, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: isSelected ? Colors.white : Colors.grey.shade700)),
-                            if (isSelected) const Icon(Icons.check_circle, color: Colors.white, size: 18),
-                          ],
-                        ),
-                      ),
-                    );
-                  }).toList(),
-                ),
-              ],
-
-              const SizedBox(height: 30),
-              const Text('Description', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.blue)),
-              const SizedBox(height: 12),
-              Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(15),
-                  border: Border.all(color: Colors.grey.shade300),
-                ),
-                child: TextField(
-                  controller: _descriptionController,
-                  maxLines: 5,
-                  decoration: InputDecoration(
-                    hintText: 'Describe your issue in detail...',
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(15), borderSide: BorderSide.none),
-                    contentPadding: const EdgeInsets.all(20),
-                    filled: true,
-                    fillColor: Colors.white,
+                      );
+                    },
                   ),
                 ),
-              ),
-              
-              const SizedBox(height: 30),
-              const Text('Attachments', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.blue)),
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  _buildAttachmentButton(icon: Icons.camera_alt_rounded, label: 'Camera', onTap: () => _pickImage(ImageSource.camera)),
-                  const SizedBox(width: 16),
-                  _buildAttachmentButton(icon: Icons.photo_library_rounded, label: 'Gallery', onTap: () => _pickImage(ImageSource.gallery)),
+                
+                if (selectedCategoryName != null && _currentSubCategories.isNotEmpty) ...[
+                  const SizedBox(height: 30),
+                  const Text('Select Sub-Category', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.blue)),
+                  const SizedBox(height: 12),
+                  Column(
+                    children: _currentSubCategories.map((sub) {
+                      final isSelected = selectedSubCategory == sub;
+                      return GestureDetector(
+                        onTap: () {
+                          setState(() => selectedSubCategory = sub);
+                          _saveDraft();
+                        },
+                        child: Container(
+                          margin: const EdgeInsets.only(bottom: 10),
+                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                          decoration: BoxDecoration(
+                            color: isSelected ? Colors.blue.shade800 : Colors.grey.shade50,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: isSelected ? Colors.blue.shade800 : Colors.grey.shade200),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(sub, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: isSelected ? Colors.white : Colors.grey.shade700)),
+                              if (isSelected) const Icon(Icons.check_circle, color: Colors.white, size: 18),
+                            ],
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                  ),
                 ],
-              ),
-              
-              if (_image != null) ...[
-                const SizedBox(height: 20),
-                Stack(
+  
+                const SizedBox(height: 30),
+                const Text('Description', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.blue)),
+                const SizedBox(height: 12),
+                Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(15),
+                    border: Border.all(color: Colors.grey.shade300),
+                  ),
+                  child: TextField(
+                    controller: _descriptionController,
+                    maxLines: 5,
+                    decoration: InputDecoration(
+                      hintText: 'Describe your issue in detail...',
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(15), borderSide: BorderSide.none),
+                      contentPadding: const EdgeInsets.all(20),
+                      filled: true,
+                      fillColor: Colors.white,
+                    ),
+                  ),
+                ),
+                
+                const SizedBox(height: 30),
+                const Text('Attachments', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.blue)),
+                const SizedBox(height: 12),
+                Row(
                   children: [
-                    Container(
-                      height: 200,
-                      width: double.infinity,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(15),
-                        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 10, offset: const Offset(0, 5))],
-                        image: DecorationImage(image: FileImage(_image!), fit: BoxFit.cover),
-                      ),
-                    ),
-                    Positioned(
-                      top: 10,
-                      right: 10,
-                      child: GestureDetector(
-                        onTap: () => setState(() { _image = null; }),
-                        child: const CircleAvatar(backgroundColor: Colors.black54, radius: 18, child: Icon(Icons.close, color: Colors.white, size: 20)),
-                      ),
-                    ),
+                    _buildAttachmentButton(icon: Icons.camera_alt_rounded, label: 'Camera', onTap: () => _pickImage(ImageSource.camera)),
+                    const SizedBox(width: 16),
+                    _buildAttachmentButton(icon: Icons.photo_library_rounded, label: 'Gallery', onTap: () => _pickImage(ImageSource.gallery)),
                   ],
                 ),
-              ],
-              
-              const SizedBox(height: 40),
-              SizedBox(
-                width: double.infinity,
-                height: 55,
-                child: ElevatedButton(
-                  onPressed: _isSubmitting ? null : _submitGrievance,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue.shade800,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-                    elevation: 5,
+                
+                if (_image != null) ...[
+                  const SizedBox(height: 20),
+                  Stack(
+                    children: [
+                      Container(
+                        height: 200,
+                        width: double.infinity,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(15),
+                          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 10, offset: const Offset(0, 5))],
+                          image: DecorationImage(image: FileImage(_image!), fit: BoxFit.cover),
+                        ),
+                      ),
+                      Positioned(
+                        top: 10,
+                        right: 10,
+                        child: GestureDetector(
+                          onTap: () {
+                            setState(() { _image = null; });
+                            _saveDraft();
+                          },
+                          child: const CircleAvatar(backgroundColor: Colors.black54, radius: 18, child: Icon(Icons.close, color: Colors.white, size: 20)),
+                        ),
+                      ),
+                    ],
                   ),
-                  child: _isSubmitting ? const CircularProgressIndicator(color: Colors.white) : const Text('Submit Complaint', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                ],
+                
+                const SizedBox(height: 40),
+                SizedBox(
+                  width: double.infinity,
+                  height: 55,
+                  child: ElevatedButton(
+                    onPressed: _isSubmitting ? null : _submitGrievance,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blue.shade800,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                      elevation: 5,
+                    ),
+                    child: _isSubmitting ? const CircularProgressIndicator(color: Colors.white) : const Text('Submit Complaint', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
