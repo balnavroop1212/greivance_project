@@ -7,15 +7,14 @@ class HistoryScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
     return DefaultTabController(
       length: 4,
       child: Scaffold(
-        backgroundColor: Colors.white,
         appBar: AppBar(
           title: const Text('Complaint History', style: TextStyle(fontWeight: FontWeight.bold)),
-          backgroundColor: Colors.white,
           elevation: 0,
-          iconTheme: const IconThemeData(color: Colors.black),
           bottom: TabBar(
             isScrollable: true,
             labelColor: Colors.blue.shade800,
@@ -31,17 +30,19 @@ class HistoryScreen extends StatelessWidget {
         ),
         body: TabBarView(
           children: [
-            _buildComplaintList(null),
-            _buildComplaintList('Pending'),
-            _buildComplaintList('In Progress'),
-            _buildComplaintList('Resolved'),
+            _buildComplaintList(context, null),
+            _buildComplaintList(context, 'Pending'),
+            _buildComplaintList(context, 'In Progress'),
+            _buildComplaintList(context, 'Resolved'),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildComplaintList(String? filterStatus) {
+  Widget _buildComplaintList(BuildContext context, String? filterStatus) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
     Query query = FirebaseFirestore.instance
         .collection('grievances')
         .where('userId', isEqualTo: userId);
@@ -81,7 +82,7 @@ class HistoryScreen extends StatelessWidget {
                 const SizedBox(height: 16),
                 Text(
                   'No ${filterStatus ?? ""} complaints found',
-                  style: TextStyle(fontSize: 18, color: Colors.grey[600]),
+                  style: TextStyle(fontSize: 18, color: isDarkMode ? Colors.white60 : Colors.grey[600]),
                 ),
               ],
             ),
@@ -105,11 +106,11 @@ class HistoryScreen extends StatelessWidget {
             return Container(
               margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: isDarkMode ? const Color(0xFF1E1E1E) : Colors.white,
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.05),
+                    color: Colors.black.withValues(alpha: isDarkMode ? 0.3 : 0.05),
                     blurRadius: 10,
                     offset: const Offset(0, 4),
                   ),
@@ -120,10 +121,10 @@ class HistoryScreen extends StatelessWidget {
                 leading: Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: Colors.blue.shade50,
+                    color: isDarkMode ? Colors.blue.withValues(alpha: 0.1) : Colors.blue.shade50,
                     shape: BoxShape.circle,
                   ),
-                  child: Icon(_getIconForCategory(category), color: Colors.blue.shade800),
+                  child: Icon(_getIconForCategory(category), color: isDarkMode ? Colors.blue.shade300 : Colors.blue.shade800),
                 ),
                 title: Text(
                   category,
@@ -133,7 +134,7 @@ class HistoryScreen extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const SizedBox(height: 4),
-                    Text("Date: $dateStr", style: TextStyle(color: Colors.grey[600], fontSize: 13)),
+                    Text("Date: $dateStr", style: TextStyle(color: isDarkMode ? Colors.white60 : Colors.grey[600], fontSize: 13)),
                     const SizedBox(height: 8),
                     _buildStatusChip(status),
                   ],
@@ -192,15 +193,17 @@ class HistoryScreen extends StatelessWidget {
   }
 
   void _showComplaintDetails(BuildContext context, Map<String, dynamic> data, String date) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) => Container(
         height: MediaQuery.of(context).size.height * 0.75,
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
+        decoration: BoxDecoration(
+          color: isDarkMode ? const Color(0xFF1E1E1E) : Colors.white,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(25)),
         ),
         padding: const EdgeInsets.all(24),
         child: Column(
@@ -211,7 +214,7 @@ class HistoryScreen extends StatelessWidget {
                 width: 40,
                 height: 5,
                 decoration: BoxDecoration(
-                  color: Colors.grey[300],
+                  color: isDarkMode ? Colors.grey.shade800 : Colors.grey.shade300,
                   borderRadius: BorderRadius.circular(10),
                 ),
               ),
@@ -233,7 +236,7 @@ class HistoryScreen extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               'Filed on: $date',
-              style: TextStyle(color: Colors.grey[600], fontSize: 14),
+              style: TextStyle(color: isDarkMode ? Colors.white60 : Colors.grey[600], fontSize: 14),
             ),
             const Divider(height: 40),
             const Text(
@@ -245,7 +248,7 @@ class HistoryScreen extends StatelessWidget {
               child: SingleChildScrollView(
                 child: Text(
                   data['description'] ?? 'No description provided.',
-                  style: TextStyle(fontSize: 16, color: Colors.grey[800], height: 1.5),
+                  style: TextStyle(fontSize: 16, color: isDarkMode ? Colors.white70 : Colors.grey[800], height: 1.5),
                 ),
               ),
             ),

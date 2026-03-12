@@ -105,8 +105,8 @@ class _ComplaintScreenState extends State<ComplaintScreen> {
   @override
   void initState() {
     super.initState();
-    // Start with a clean form every time the page is opened
-    _clearDraft();
+    _loadDraft();
+    _handleLostData();
     
     _descriptionController.addListener(() {
       _saveDraft();
@@ -271,21 +271,20 @@ class _ComplaintScreenState extends State<ComplaintScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
     return PopScope(
       onPopInvokedWithResult: (didPop, result) {
         if (didPop) {
-          _clearDraft(); // Lose progress when explicitly leaving the page
+          _clearDraft();
         }
       },
       child: Scaffold(
-        backgroundColor: Colors.white,
         appBar: AppBar(
           title: const Text('File Complaint', style: TextStyle(fontWeight: FontWeight.bold)),
-          backgroundColor: Colors.white,
           elevation: 0,
-          iconTheme: const IconThemeData(color: Colors.black),
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back, color: Colors.black),
+            icon: const Icon(Icons.arrow_back),
             onPressed: () => Navigator.pop(context),
           ),
         ),
@@ -295,7 +294,7 @@ class _ComplaintScreenState extends State<ComplaintScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('Select Category', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.blue)),
+                Text('Select Category', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: isDarkMode ? Colors.blue.shade300 : Colors.blue)),
                 const SizedBox(height: 16),
                 SizedBox(
                   height: 100,
@@ -318,17 +317,17 @@ class _ComplaintScreenState extends State<ComplaintScreen> {
                           width: 90,
                           margin: const EdgeInsets.only(right: 12),
                           decoration: BoxDecoration(
-                            color: isSelected ? Colors.blue.shade800 : Colors.white,
+                            color: isSelected ? Colors.blue.shade800 : (isDarkMode ? const Color(0xFF1E1E1E) : Colors.white),
                             borderRadius: BorderRadius.circular(16),
-                            border: Border.all(color: isSelected ? Colors.blue.shade800 : Colors.grey.shade300),
+                            border: Border.all(color: isSelected ? Colors.blue.shade800 : (isDarkMode ? Colors.grey.shade800 : Colors.grey.shade300)),
                             boxShadow: isSelected ? [BoxShadow(color: Colors.blue.withValues(alpha: 0.3), blurRadius: 8, offset: const Offset(0, 4))] : [],
                           ),
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Icon(category['icon'], color: isSelected ? Colors.white : Colors.blue.shade800, size: 28),
+                              Icon(category['icon'], color: isSelected ? Colors.white : (isDarkMode ? Colors.blue.shade300 : Colors.blue.shade800), size: 28),
                               const SizedBox(height: 8),
-                              Text(category['name'], textAlign: TextAlign.center, style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: isSelected ? Colors.white : Colors.grey.shade700)),
+                              Text(category['name'], textAlign: TextAlign.center, style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: isSelected ? Colors.white : (isDarkMode ? Colors.white70 : Colors.grey.shade700))),
                             ],
                           ),
                         ),
@@ -339,7 +338,7 @@ class _ComplaintScreenState extends State<ComplaintScreen> {
                 
                 if (selectedCategoryName != null && _currentSubCategories.isNotEmpty) ...[
                   const SizedBox(height: 30),
-                  const Text('Select Sub-Category', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.blue)),
+                  Text('Select Sub-Category', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: isDarkMode ? Colors.blue.shade300 : Colors.blue)),
                   const SizedBox(height: 12),
                   Column(
                     children: _currentSubCategories.map((sub) {
@@ -351,16 +350,16 @@ class _ComplaintScreenState extends State<ComplaintScreen> {
                         },
                         child: Container(
                           margin: const EdgeInsets.only(bottom: 10),
-                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                           decoration: BoxDecoration(
-                            color: isSelected ? Colors.blue.shade800 : Colors.grey.shade50,
+                            color: isSelected ? Colors.blue.shade800 : (isDarkMode ? const Color(0xFF1E1E1E) : Colors.grey.shade50),
                             borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: isSelected ? Colors.blue.shade800 : Colors.grey.shade200),
+                            border: Border.all(color: isSelected ? Colors.blue.shade800 : (isDarkMode ? Colors.grey.shade800 : Colors.grey.shade200)),
                           ),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Text(sub, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: isSelected ? Colors.white : Colors.grey.shade700)),
+                              Text(sub, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: isSelected ? Colors.white : (isDarkMode ? Colors.white70 : Colors.grey.shade700))),
                               if (isSelected) const Icon(Icons.check_circle, color: Colors.white, size: 18),
                             ],
                           ),
@@ -371,29 +370,31 @@ class _ComplaintScreenState extends State<ComplaintScreen> {
                 ],
   
                 const SizedBox(height: 30),
-                const Text('Description', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.blue)),
+                Text('Description', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: isDarkMode ? Colors.blue.shade300 : Colors.blue)),
                 const SizedBox(height: 12),
                 Container(
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: isDarkMode ? const Color(0xFF1E1E1E) : Colors.white,
                     borderRadius: BorderRadius.circular(15),
-                    border: Border.all(color: Colors.grey.shade300),
+                    border: Border.all(color: isDarkMode ? Colors.grey.shade800 : Colors.grey.shade300),
                   ),
                   child: TextField(
                     controller: _descriptionController,
                     maxLines: 5,
+                    style: TextStyle(color: isDarkMode ? Colors.white : Colors.black),
                     decoration: InputDecoration(
                       hintText: 'Describe your issue in detail...',
+                      hintStyle: TextStyle(color: isDarkMode ? Colors.white38 : Colors.grey),
                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(15), borderSide: BorderSide.none),
                       contentPadding: const EdgeInsets.all(20),
                       filled: true,
-                      fillColor: Colors.white,
+                      fillColor: Colors.transparent,
                     ),
                   ),
                 ),
                 
                 const SizedBox(height: 30),
-                const Text('Attachments', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.blue)),
+                Text('Attachments', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: isDarkMode ? Colors.blue.shade300 : Colors.blue)),
                 const SizedBox(height: 12),
                 Row(
                   children: [
@@ -455,6 +456,8 @@ class _ComplaintScreenState extends State<ComplaintScreen> {
   }
 
   Widget _buildAttachmentButton({required IconData icon, required String label, required VoidCallback onTap}) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
     return Expanded(
       child: InkWell(
         onTap: _isPickingImage ? null : onTap,
@@ -462,16 +465,16 @@ class _ComplaintScreenState extends State<ComplaintScreen> {
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 20),
           decoration: BoxDecoration(
-            color: Colors.white, 
+            color: isDarkMode ? const Color(0xFF1E1E1E) : Colors.white, 
             borderRadius: BorderRadius.circular(15), 
-            border: Border.all(color: Colors.blue.shade100),
+            border: Border.all(color: isDarkMode ? Colors.grey.shade800 : Colors.blue.shade100),
             boxShadow: [BoxShadow(color: Colors.blue.withValues(alpha: 0.05), blurRadius: 5, offset: const Offset(0, 2))],
           ),
           child: Column(
             children: [
-              Icon(icon, color: Colors.blue.shade800, size: 30),
+              Icon(icon, color: isDarkMode ? Colors.blue.shade300 : Colors.blue.shade800, size: 30),
               const SizedBox(height: 8),
-              Text(label, style: TextStyle(color: Colors.blue.shade800, fontWeight: FontWeight.bold)),
+              Text(label, style: TextStyle(color: isDarkMode ? Colors.blue.shade300 : Colors.blue.shade800, fontWeight: FontWeight.bold)),
             ],
           ),
         ),
