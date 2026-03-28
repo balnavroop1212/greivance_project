@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'suggestion.dart';
 
 class AdminHomePage extends StatelessWidget {
   final String userName;
@@ -13,7 +14,7 @@ class AdminHomePage extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Home', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: const Text('Admin Dashboard', style: TextStyle(fontWeight: FontWeight.bold)),
         elevation: 0,
         leading: Padding(
           padding: const EdgeInsets.all(8.0),
@@ -56,7 +57,7 @@ class AdminHomePage extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           const Text(
-                            'Admin Session,',
+                            'Logged in as,',
                             style: TextStyle(color: Colors.white70, fontSize: 14),
                           ),
                           Text(
@@ -68,7 +69,7 @@ class AdminHomePage extends StatelessWidget {
                             ),
                           ),
                           Text(
-                            'ID: $userId',
+                            'Admin ID: $userId',
                             style: const TextStyle(color: Colors.white70, fontSize: 16),
                           ),
                         ],
@@ -85,7 +86,7 @@ class AdminHomePage extends StatelessWidget {
                 subtitle: 'View complaint statistics',
                 icon: Icons.dashboard_rounded,
                 onTap: () {
-                  // TODO: Navigate to Overview Screen
+                  // TODO: Navigate to Overview
                 },
               ),
               const SizedBox(height: 20),
@@ -95,17 +96,20 @@ class AdminHomePage extends StatelessWidget {
                 subtitle: 'Manage staff and assignments',
                 icon: Icons.engineering_rounded,
                 onTap: () {
-                  // TODO: Navigate to Worker Management Screen
+                  // TODO: Navigate to Workers
                 },
               ),
               const SizedBox(height: 20),
               _buildTab(
                 context,
-                title: 'Suggestions',
-                subtitle: 'View user feedback',
+                title: 'User Suggestions',
+                subtitle: 'View real-time feedback',
                 icon: Icons.lightbulb_outline_rounded,
                 onTap: () {
-                  // TODO: Navigate to Admin Suggestions Screen
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const AdminSuggestionsPage()),
+                  );
                 },
               ),
             ],
