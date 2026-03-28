@@ -4,7 +4,8 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'firebase_options.dart';
 import 'auth/login_page.dart';
-import 'screens/home_page.dart';
+import 'screens/user/home_page.dart';
+import 'screens/admin/admin_home_page.dart';
 import 'theme_provider.dart';
 
 void main() async {
@@ -17,14 +18,24 @@ void main() async {
   final prefs = await SharedPreferences.getInstance();
   final String? userId = prefs.getString('user_id');
   final String? userName = prefs.getString('user_name');
+  final String? userRole = prefs.getString('user_role');
+  
+  Widget initialHome;
+  if (userId != null && userName != null) {
+    if (userRole == 'admin') {
+      initialHome = const AdminHomePage();
+    } else {
+      initialHome = HomePage(userId: userId, userName: userName);
+    }
+  } else {
+    initialHome = const LoginPage();
+  }
   
   runApp(
     ChangeNotifierProvider(
       create: (context) => ThemeProvider(),
       child: MyApp(
-        initialHome: (userId != null && userName != null)
-            ? HomePage(userId: userId, userName: userName)
-            : const LoginPage(),
+        initialHome: initialHome,
       ),
     ),
   );

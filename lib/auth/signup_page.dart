@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../screens/home_page.dart';
+import '../screens/user/home_page.dart';
 
 class SignupPage extends StatefulWidget {
   const SignupPage({super.key});

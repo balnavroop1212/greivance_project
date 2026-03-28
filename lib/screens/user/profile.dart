@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../auth/login_page.dart';
-import '../theme_provider.dart';
+import '../../auth/login_page.dart';
+import '../../theme_provider.dart';
 
 class ProfileScreen extends StatelessWidget {
   final String userName;

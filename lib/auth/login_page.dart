@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../screens/home_page.dart';
+import '../screens/user/home_page.dart';
+import '../screens/admin/admin_home_page.dart';
 import 'signup_page.dart';
 
 class LoginPage extends StatefulWidget {
@@ -41,6 +42,24 @@ class _LoginPageState extends State<LoginPage> {
     });
 
     try {
+      // Check for Admin hardcoded credentials
+      if (rollNumber == '1111111' && password == 'admin1') {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('user_id', rollNumber);
+        await prefs.setString('user_name', 'Admin');
+        await prefs.setString('user_role', 'admin');
+
+        if (mounted) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const AdminHomePage(),
+            ),
+          );
+        }
+        return;
+      }
+
       var userDoc = await FirebaseFirestore.instance.collection('users').doc(rollNumber).get();
 
       if (userDoc.exists) {
@@ -50,6 +69,7 @@ class _LoginPageState extends State<LoginPage> {
           final prefs = await SharedPreferences.getInstance();
           await prefs.setString('user_id', rollNumber);
           await prefs.setString('user_name', name);
+          await prefs.setString('user_role', 'user');
 
           if (mounted) {
             Navigator.pushReplacement(
