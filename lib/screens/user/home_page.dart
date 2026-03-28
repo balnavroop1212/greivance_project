@@ -6,17 +6,18 @@ import 'suggestions_page.dart';
 
 class HomePage extends StatelessWidget {
   final String userName;
-  final String phone;
+  final String userId;
 
-  const HomePage({super.key, this.userName = 'User', this.phone = ''});
+  const HomePage({super.key, this.userName = 'User', this.userId = ''});
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDarkMode = theme.brightness == Brightness.dark;
+
     return Scaffold(
-      backgroundColor: Colors.grey[100],
       appBar: AppBar(
         title: const Text('Home', style: TextStyle(fontWeight: FontWeight.bold)),
-        backgroundColor: Colors.white,
         elevation: 0,
         leading: Padding(
           padding: const EdgeInsets.all(8.0),
@@ -25,13 +26,13 @@ class HomePage extends StatelessWidget {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => ProfileScreen(userName: userName, phone: phone),
+                  builder: (context) => ProfileScreen(userName: userName, userId: userId),
                 ),
               );
             },
             child: CircleAvatar(
-              backgroundColor: Colors.blue.shade100,
-              child: Icon(Icons.person, color: Colors.blue.shade800),
+              backgroundColor: isDarkMode ? Colors.blue.shade900 : Colors.blue.shade100,
+              child: Icon(Icons.person, color: isDarkMode ? Colors.blue.shade200 : Colors.blue.shade800),
             ),
           ),
         ),
@@ -50,7 +51,7 @@ class HomePage extends StatelessWidget {
                   borderRadius: BorderRadius.circular(20),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.blue.withOpacity(0.3),
+                      color: Colors.blue.withValues(alpha: 0.3),
                       blurRadius: 10,
                       offset: const Offset(0, 5),
                     ),
@@ -81,7 +82,7 @@ class HomePage extends StatelessWidget {
                             ),
                           ),
                           Text(
-                            '+91 $phone',
+                            'Roll No: $userId',
                             style: const TextStyle(color: Colors.white70, fontSize: 16),
                           ),
                         ],
@@ -100,7 +101,7 @@ class HomePage extends StatelessWidget {
                 onTap: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => ComplaintScreen(phone: phone)),
+                    MaterialPageRoute(builder: (context) => ComplaintScreen(userId: userId)),
                   );
                 },
               ),
@@ -113,7 +114,7 @@ class HomePage extends StatelessWidget {
                 onTap: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => HistoryScreen(phone: phone)),
+                    MaterialPageRoute(builder: (context) => HistoryScreen(userId: userId)),
                   );
                 },
               ),
@@ -126,7 +127,7 @@ class HomePage extends StatelessWidget {
                 onTap: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => SuggestionsPage(phone: phone)),
+                    MaterialPageRoute(builder: (context) => SuggestionsPage(userId: userId)),
                   );
                 },
               ),
@@ -139,19 +140,22 @@ class HomePage extends StatelessWidget {
 
   Widget _buildTab(BuildContext context,
       {required String title, required String subtitle, required IconData icon, required VoidCallback onTap}) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
     return Container(
       decoration: BoxDecoration(
+        color: isDarkMode ? const Color(0xFF1E1E1E) : Colors.white,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: isDarkMode ? 0.3 : 0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
         ],
       ),
       child: Material(
-        color: Colors.white,
+        color: Colors.transparent,
         borderRadius: BorderRadius.circular(16),
         child: InkWell(
           borderRadius: BorderRadius.circular(16),
@@ -164,10 +168,10 @@ class HomePage extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: Colors.blue.shade50,
+                    color: isDarkMode ? Colors.blue.withValues(alpha: 0.1) : Colors.blue.shade50,
                     shape: BoxShape.circle,
                   ),
-                  child: Icon(icon, size: 28, color: Colors.blue.shade800),
+                  child: Icon(icon, size: 28, color: isDarkMode ? Colors.blue.shade300 : Colors.blue.shade800),
                 ),
                 const SizedBox(width: 20),
                 Expanded(
@@ -179,20 +183,20 @@ class HomePage extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
-                          color: Colors.grey.shade800,
+                          color: isDarkMode ? Colors.white : Colors.grey.shade800,
                         ),
                       ),
                       Text(
                         subtitle,
                         style: TextStyle(
                           fontSize: 14,
-                          color: Colors.grey.shade500,
+                          color: isDarkMode ? Colors.white60 : Colors.grey.shade500,
                         ),
                       ),
                     ],
                   ),
                 ),
-                Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey.shade400),
+                Icon(Icons.arrow_forward_ios, size: 16, color: isDarkMode ? Colors.white30 : Colors.grey.shade400),
               ],
             ),
           ),

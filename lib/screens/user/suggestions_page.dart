@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class SuggestionsPage extends StatefulWidget {
-  final String phone;
-  const SuggestionsPage({super.key, required this.phone});
+  final String userId;
+  const SuggestionsPage({super.key, required this.userId});
 
   @override
   State<SuggestionsPage> createState() => _SuggestionsPageState();
@@ -29,7 +29,7 @@ class _SuggestionsPageState extends State<SuggestionsPage> {
 
     try {
       await FirebaseFirestore.instance.collection('suggestions').add({
-        'userId': widget.phone,
+        'userId': widget.userId,
         'feedback': _feedbackController.text.trim(),
         'timestamp': FieldValue.serverTimestamp(),
       });
@@ -63,28 +63,27 @@ class _SuggestionsPageState extends State<SuggestionsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
-      backgroundColor: Colors.grey[100],
       appBar: AppBar(
         title: const Text(
           "Suggestions",
-          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
+          style: TextStyle(fontWeight: FontWeight.bold),
         ),
-        backgroundColor: Colors.white,
         elevation: 0,
-        iconTheme: const IconThemeData(color: Colors.black),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            Text(
               "We value your feedback!",
               style: TextStyle(
                 fontSize: 22,
                 fontWeight: FontWeight.bold,
-                color: Colors.blue,
+                color: isDarkMode ? Colors.blue.shade300 : Colors.blue,
               ),
             ),
             const SizedBox(height: 10),
@@ -92,7 +91,7 @@ class _SuggestionsPageState extends State<SuggestionsPage> {
               "Please let us know how we can improve our services or any suggestions you have.",
               style: TextStyle(
                 fontSize: 16,
-                color: Colors.grey[700],
+                color: isDarkMode ? Colors.white70 : Colors.grey[700],
               ),
             ),
             const SizedBox(height: 30),
@@ -102,11 +101,12 @@ class _SuggestionsPageState extends State<SuggestionsPage> {
                 children: [
                   Container(
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: isDarkMode ? const Color(0xFF1E1E1E) : Colors.white,
                       borderRadius: BorderRadius.circular(15),
+                      border: Border.all(color: isDarkMode ? Colors.grey.shade800 : Colors.transparent),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.05),
+                          color: Colors.black.withValues(alpha: isDarkMode ? 0.3 : 0.05),
                           blurRadius: 10,
                           offset: const Offset(0, 4),
                         ),
@@ -115,14 +115,16 @@ class _SuggestionsPageState extends State<SuggestionsPage> {
                     child: TextFormField(
                       controller: _feedbackController,
                       maxLines: 8,
+                      style: TextStyle(color: isDarkMode ? Colors.white : Colors.black),
                       decoration: InputDecoration(
                         hintText: "Enter your suggestions here...",
+                        hintStyle: TextStyle(color: isDarkMode ? Colors.white38 : Colors.grey),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(15),
                           borderSide: BorderSide.none,
                         ),
                         contentPadding: const EdgeInsets.all(20),
-                        fillColor: Colors.white,
+                        fillColor: Colors.transparent,
                         filled: true,
                       ),
                       validator: (value) {
@@ -146,7 +148,7 @@ class _SuggestionsPageState extends State<SuggestionsPage> {
                           borderRadius: BorderRadius.circular(15),
                         ),
                         elevation: 5,
-                        shadowColor: Colors.blue.withOpacity(0.3),
+                        shadowColor: Colors.blue.withValues(alpha: 0.3),
                       ),
                       child: _isSubmitting
                           ? const CircularProgressIndicator(color: Colors.white)
