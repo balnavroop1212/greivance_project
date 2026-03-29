@@ -1,11 +1,17 @@
 import 'package:flutter/material.dart';
+import 'admin_profile.dart';
 
-class AdminHomePage extends StatelessWidget {
+class AdminHomePage extends StatefulWidget {
   final String userName;
   final String userId;
 
   const AdminHomePage({super.key, this.userName = 'Admin', this.userId = '1111111'});
 
+  @override
+  State<AdminHomePage> createState() => _AdminHomePageState();
+}
+
+class _AdminHomePageState extends State<AdminHomePage> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -13,13 +19,28 @@ class AdminHomePage extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Home', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: const Text('Admin Dashboard', style: TextStyle(fontWeight: FontWeight.bold)),
         elevation: 0,
+        backgroundColor: Colors.white,
+        iconTheme: const IconThemeData(color: Colors.black),
         leading: Padding(
           padding: const EdgeInsets.all(8.0),
-          child: CircleAvatar(
-            backgroundColor: isDarkMode ? Colors.blue.shade900 : Colors.blue.shade100,
-            child: Icon(Icons.person, color: isDarkMode ? Colors.blue.shade200 : Colors.blue.shade800),
+          child: GestureDetector(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => AdminProfileScreen(
+                    userName: widget.userName,
+                    adminId: widget.userId,
+                  ),
+                ),
+              );
+            },
+            child: CircleAvatar(
+              backgroundColor: Colors.blue.shade100,
+              child: Icon(Icons.person_rounded, color: Colors.blue.shade800),
+            ),
           ),
         ),
       ),
@@ -37,7 +58,7 @@ class AdminHomePage extends StatelessWidget {
                   borderRadius: BorderRadius.circular(20),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.blue.withValues(alpha: 0.3),
+                      color: Colors.blue.withOpacity(0.3),
                       blurRadius: 10,
                       offset: const Offset(0, 5),
                     ),
@@ -56,11 +77,11 @@ class AdminHomePage extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           const Text(
-                            'Admin Session,',
+                            'Administrative Session',
                             style: TextStyle(color: Colors.white70, fontSize: 14),
                           ),
                           Text(
-                            userName,
+                            widget.userName,
                             style: const TextStyle(
                               color: Colors.white,
                               fontSize: 22,
@@ -68,7 +89,7 @@ class AdminHomePage extends StatelessWidget {
                             ),
                           ),
                           Text(
-                            'ID: $userId',
+                            'ID: ${widget.userId}',
                             style: const TextStyle(color: Colors.white70, fontSize: 16),
                           ),
                         ],
@@ -81,32 +102,26 @@ class AdminHomePage extends StatelessWidget {
               
               _buildTab(
                 context,
-                title: 'Overview',
-                subtitle: 'View complaint statistics',
+                title: 'Grievance Overview',
+                subtitle: 'Monitor all submitted complaints',
                 icon: Icons.dashboard_rounded,
-                onTap: () {
-                  // TODO: Navigate to Overview Screen
-                },
+                onTap: () {},
               ),
               const SizedBox(height: 20),
               _buildTab(
                 context,
-                title: 'Worker Management',
-                subtitle: 'Manage staff and assignments',
+                title: 'Staff Management',
+                subtitle: 'Manage administrative personnel',
                 icon: Icons.engineering_rounded,
-                onTap: () {
-                  // TODO: Navigate to Worker Management Screen
-                },
+                onTap: () {},
               ),
               const SizedBox(height: 20),
               _buildTab(
                 context,
-                title: 'Suggestions',
-                subtitle: 'View user feedback',
+                title: 'User Suggestions',
+                subtitle: 'Review feedback from users',
                 icon: Icons.lightbulb_outline_rounded,
-                onTap: () {
-                  // TODO: Navigate to Admin Suggestions Screen
-                },
+                onTap: () {},
               ),
             ],
           ),
@@ -117,15 +132,13 @@ class AdminHomePage extends StatelessWidget {
 
   Widget _buildTab(BuildContext context,
       {required String title, required String subtitle, required IconData icon, required VoidCallback onTap}) {
-    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
-
     return Container(
       decoration: BoxDecoration(
-        color: isDarkMode ? const Color(0xFF1E1E1E) : Colors.white,
+        color: Colors.white,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: isDarkMode ? 0.3 : 0.05),
+            color: Colors.black.withOpacity(0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -145,10 +158,10 @@ class AdminHomePage extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: isDarkMode ? Colors.blue.withValues(alpha: 0.1) : Colors.blue.shade50,
+                    color: Colors.blue.shade50,
                     shape: BoxShape.circle,
                   ),
-                  child: Icon(icon, size: 28, color: isDarkMode ? Colors.blue.shade300 : Colors.blue.shade800),
+                  child: Icon(icon, size: 28, color: Colors.blue.shade800),
                 ),
                 const SizedBox(width: 20),
                 Expanded(
@@ -157,23 +170,23 @@ class AdminHomePage extends StatelessWidget {
                     children: [
                       Text(
                         title,
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
-                          color: isDarkMode ? Colors.white : Colors.grey.shade800,
+                          color: Colors.black87,
                         ),
                       ),
                       Text(
                         subtitle,
                         style: TextStyle(
                           fontSize: 14,
-                          color: isDarkMode ? Colors.white60 : Colors.grey.shade500,
+                          color: Colors.grey.shade600,
                         ),
                       ),
                     ],
                   ),
                 ),
-                Icon(Icons.arrow_forward_ios, size: 16, color: isDarkMode ? Colors.white30 : Colors.grey.shade400),
+                Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey.shade400),
               ],
             ),
           ),
