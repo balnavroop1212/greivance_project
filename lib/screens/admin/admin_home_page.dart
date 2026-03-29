@@ -1,17 +1,13 @@
 import 'package:flutter/material.dart';
+import 'suggestion.dart';
 import 'admin_profile.dart';
 
-class AdminHomePage extends StatefulWidget {
+class AdminHomePage extends StatelessWidget {
   final String userName;
   final String userId;
 
   const AdminHomePage({super.key, this.userName = 'Admin', this.userId = '1111111'});
 
-  @override
-  State<AdminHomePage> createState() => _AdminHomePageState();
-}
-
-class _AdminHomePageState extends State<AdminHomePage> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -19,7 +15,7 @@ class _AdminHomePageState extends State<AdminHomePage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Admin Dashboard', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: const Text('Home', style: TextStyle(fontWeight: FontWeight.bold)),
         elevation: 0,
         backgroundColor: Colors.white,
         iconTheme: const IconThemeData(color: Colors.black),
@@ -31,8 +27,8 @@ class _AdminHomePageState extends State<AdminHomePage> {
                 context,
                 MaterialPageRoute(
                   builder: (context) => AdminProfileScreen(
-                    userName: widget.userName,
-                    adminId: widget.userId,
+                    userName: userName,
+                    adminId: userId,
                   ),
                 ),
               );
@@ -81,7 +77,7 @@ class _AdminHomePageState extends State<AdminHomePage> {
                             style: TextStyle(color: Colors.white70, fontSize: 14),
                           ),
                           Text(
-                            widget.userName,
+                            userName,
                             style: const TextStyle(
                               color: Colors.white,
                               fontSize: 22,
@@ -89,7 +85,7 @@ class _AdminHomePageState extends State<AdminHomePage> {
                             ),
                           ),
                           Text(
-                            'ID: ${widget.userId}',
+                            'ID: $userId',
                             style: const TextStyle(color: Colors.white70, fontSize: 16),
                           ),
                         ],
@@ -102,26 +98,35 @@ class _AdminHomePageState extends State<AdminHomePage> {
               
               _buildTab(
                 context,
-                title: 'Grievance Overview',
-                subtitle: 'Monitor all submitted complaints',
+                title: 'Overview',
+                subtitle: 'View complaint statistics',
                 icon: Icons.dashboard_rounded,
-                onTap: () {},
+                onTap: () {
+                  // TODO: Navigate to Overview
+                },
               ),
               const SizedBox(height: 20),
               _buildTab(
                 context,
-                title: 'Staff Management',
-                subtitle: 'Manage administrative personnel',
+                title: 'Worker Management',
+                subtitle: 'Manage staff and assignments',
                 icon: Icons.engineering_rounded,
-                onTap: () {},
+                onTap: () {
+                  // TODO: Navigate to Workers
+                },
               ),
               const SizedBox(height: 20),
               _buildTab(
                 context,
                 title: 'User Suggestions',
-                subtitle: 'Review feedback from users',
+                subtitle: 'View real-time feedback',
                 icon: Icons.lightbulb_outline_rounded,
-                onTap: () {},
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const AdminSuggestionsPage()),
+                  );
+                },
               ),
             ],
           ),
