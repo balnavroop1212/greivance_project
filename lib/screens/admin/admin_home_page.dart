@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'suggestion.dart';
 import 'admin_profile.dart';
+import 'overview.dart';
 
 class AdminHomePage extends StatelessWidget {
   final String userName;
@@ -102,7 +103,10 @@ class AdminHomePage extends StatelessWidget {
                 subtitle: 'View complaint statistics',
                 icon: Icons.dashboard_rounded,
                 onTap: () {
-                  // TODO: Navigate to Overview
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const OverviewScreen()),
+                  );
                 },
               ),
               const SizedBox(height: 20),
