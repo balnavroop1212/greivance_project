@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import '../../services/api_service.dart';
 
 class SuggestionsPage extends StatefulWidget {
   final String userId;
@@ -12,6 +12,7 @@ class SuggestionsPage extends StatefulWidget {
 class _SuggestionsPageState extends State<SuggestionsPage> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _feedbackController = TextEditingController();
+  final ApiService _apiService = ApiService();
   bool _isSubmitting = false;
 
   @override
@@ -28,26 +29,34 @@ class _SuggestionsPageState extends State<SuggestionsPage> {
     });
 
     try {
-      await FirebaseFirestore.instance.collection('suggestions').add({
-        'userId': widget.userId,
-        'feedback': _feedbackController.text.trim(),
-        'timestamp': FieldValue.serverTimestamp(),
-      });
+      final success = await _apiService.postSuggestion(
+        widget.userId,
+        _feedbackController.text.trim(),
+      );
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Thank you for your suggestion!'),
-            backgroundColor: Colors.green,
-          ),
-        );
-        _feedbackController.clear();
+        if (success) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Thank you for your suggestion!'),
+              backgroundColor: Colors.green,
+            ),
+          );
+          _feedbackController.clear();
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Failed to submit suggestion'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error submitting suggestion: $e'),
+            content: Text('Error: ${e.toString()}'),
             backgroundColor: Colors.red,
           ),
         );

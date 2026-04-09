@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../screens/user/home_page.dart';
+import '../services/api_service.dart';
 
 class SignupPage extends StatefulWidget {
   const SignupPage({super.key});
@@ -15,6 +15,7 @@ class _SignupPageState extends State<SignupPage> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _rollNumberController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  final ApiService _apiService = ApiService();
   bool _isLoading = false;
   bool _obscurePassword = true;
 
@@ -49,27 +50,13 @@ class _SignupPageState extends State<SignupPage> {
     });
 
     try {
-      // Check if user already exists
-      var userDoc = await FirebaseFirestore.instance.collection('users').doc(rollNumber).get();
+      final success = await _apiService.signup(name, rollNumber, password);
       
-      if (userDoc.exists) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('User already exists with this Roll Number')),
-          );
-        }
-      } else {
-        // Create new user
-        await FirebaseFirestore.instance.collection('users').doc(rollNumber).set({
-          'name': name,
-          'rollNumber': rollNumber,
-          'password': password,
-          'createdAt': FieldValue.serverTimestamp(),
-        });
-
+      if (success) {
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('user_id', rollNumber);
         await prefs.setString('user_name', name);
+        await prefs.setString('user_role', 'user');
 
         if (mounted) {
           Navigator.pushReplacement(
@@ -77,6 +64,12 @@ class _SignupPageState extends State<SignupPage> {
             MaterialPageRoute(
               builder: (context) => HomePage(userName: name, userId: rollNumber),
             ),
+          );
+        }
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Signup failed. User may already exist.')),
           );
         }
       }

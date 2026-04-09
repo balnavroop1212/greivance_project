@@ -1,9 +1,8 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../services/api_service.dart';
 
 class ComplaintScreen extends StatefulWidget {
   final String userId;
@@ -15,6 +14,7 @@ class ComplaintScreen extends StatefulWidget {
 
 class _ComplaintScreenState extends State<ComplaintScreen> {
   final TextEditingController _descriptionController = TextEditingController();
+  final ApiService _apiService = ApiService();
   String? selectedCategoryName;
   String? selectedSubCategory;
   bool _isSubmitting = false;
@@ -189,9 +189,9 @@ class _ComplaintScreenState extends State<ComplaintScreen> {
     try {
       final XFile? pickedFile = await _picker.pickImage(
         source: source,
-        maxWidth: 1024,
-        maxHeight: 1024,
-        imageQuality: 80,
+        maxWidth: 800, // Reduced resolution for faster upload
+        maxHeight: 800, // Reduced resolution for faster upload
+        imageQuality: 70, // Compressed quality to prevent 502 timeout
       );
       
       if (pickedFile != null) {
@@ -225,40 +225,28 @@ class _ComplaintScreenState extends State<ComplaintScreen> {
     setState(() { _isSubmitting = true; });
 
     try {
-      String? imageUrl;
-      if (_image != null) {
-        if (!await _image!.exists()) {
-          throw Exception("Selected image file not found on device.");
+      final errorMsg = await _apiService.postComplaint(
+        userId: widget.userId,
+        category: selectedCategoryName!,
+        subCategory: selectedSubCategory ?? "General",
+        description: _descriptionController.text.trim(),
+        imageFile: _image,
+      );
+
+      if (errorMsg == null) {
+        await _clearDraft();
+        if (mounted) {
+          scaffoldMessenger.showSnackBar(
+            const SnackBar(content: Text('Complaint submitted successfully!'), backgroundColor: Colors.green),
+          );
+          navigator.pop();
         }
-        
-        String fileName = 'complaint_${DateTime.now().millisecondsSinceEpoch}.jpg';
-        Reference ref = FirebaseStorage.instance.ref().child('complaints').child(fileName);
-        
-        try {
-          await ref.putFile(_image!);
-          imageUrl = await ref.getDownloadURL();
-        } on FirebaseException catch (e) {
-          throw Exception("Firebase Storage error: ${e.message}");
+      } else {
+        if (mounted) {
+          scaffoldMessenger.showSnackBar(
+            SnackBar(content: Text(errorMsg), backgroundColor: Colors.red, duration: const Duration(seconds: 5)),
+          );
         }
-      }
-
-      await FirebaseFirestore.instance.collection('grievances').add({
-        'category': selectedCategoryName,
-        'subCategory': selectedSubCategory,
-        'description': _descriptionController.text.trim(),
-        'userId': widget.userId,
-        'status': 'Pending',
-        'timestamp': FieldValue.serverTimestamp(),
-        'imageUrl': imageUrl, 
-      });
-
-      await _clearDraft();
-
-      if (mounted) {
-        scaffoldMessenger.showSnackBar(
-          const SnackBar(content: Text('Complaint submitted successfully!'), backgroundColor: Colors.green),
-        );
-        navigator.pop();
       }
     } catch (e) {
       if (mounted) {

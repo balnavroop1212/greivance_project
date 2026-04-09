@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../auth/login_page.dart';
+import '../../theme_provider.dart';
 
 class AdminProfileScreen extends StatefulWidget {
   final String userName;
@@ -41,7 +43,7 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
 
   Future<void> _handleLogout() async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.clear(); // Clear all saved session data
+    await prefs.clear();
     
     if (mounted) {
       Navigator.pushAndRemoveUntil(
@@ -54,15 +56,16 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final themeProvider = Provider.of<ThemeProvider>(context);
+
     return Scaffold(
-      backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text('Admin Profile', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
-        backgroundColor: Colors.white,
+        title: const Text('Admin Profile', style: TextStyle(fontWeight: FontWeight.bold)),
         elevation: 0,
         centerTitle: true,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, color: Colors.black),
+          icon: const Icon(Icons.arrow_back_ios),
           onPressed: () => Navigator.pop(context),
         ),
         actions: [
@@ -88,7 +91,6 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
         child: Column(
           children: [
             const SizedBox(height: 20),
-            // Profile Image Section
             Center(
               child: Stack(
                 alignment: Alignment.bottomRight,
@@ -122,19 +124,35 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
 
             _buildSectionHeader("OFFICIAL INFORMATION"),
             const SizedBox(height: 15),
-            _buildEditableTile(Icons.person_outline_rounded, "Name", _nameController),
-            _buildEditableTile(Icons.alternate_email_rounded, "Official Email", _emailController),
-            _buildEditableTile(Icons.phone_android_rounded, "Phone Number", _phoneController),
-            _buildReadOnlyTile(Icons.badge_outlined, "Employee ID", widget.adminId),
+            _buildEditableTile(Icons.person_outline_rounded, "Name", _nameController, isDarkMode),
+            _buildEditableTile(Icons.alternate_email_rounded, "Official Email", _emailController, isDarkMode),
+            _buildEditableTile(Icons.phone_android_rounded, "Phone Number", _phoneController, isDarkMode),
+            _buildReadOnlyTile(Icons.badge_outlined, "Employee ID", widget.adminId, isDarkMode),
+
+            const SizedBox(height: 30),
+            _buildSectionHeader("PREFERENCES"),
+            const SizedBox(height: 10),
+            Card(
+              elevation: 0,
+              color: isDarkMode ? const Color(0xFF1E1E1E) : Colors.grey.shade50,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+              child: SwitchListTile(
+                title: const Text('Dark Mode', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                secondary: Icon(isDarkMode ? Icons.dark_mode : Icons.light_mode, color: Colors.blue.shade800),
+                value: isDarkMode,
+                onChanged: (bool value) {
+                  themeProvider.toggleTheme(value);
+                },
+              ),
+            ),
 
             const SizedBox(height: 30),
             _buildSectionHeader("ACCOUNT CONTROLS"),
             const SizedBox(height: 10),
-            _buildActionTile(Icons.lock_outline_rounded, "Change Security Password"),
-            _buildActionTile(Icons.notifications_none_rounded, "Notification Settings"),
+            _buildActionTile(Icons.lock_outline_rounded, "Change Security Password", isDarkMode),
+            _buildActionTile(Icons.notifications_none_rounded, "Notification Settings", isDarkMode),
 
             const SizedBox(height: 50),
-            // Logout Button
             SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(
@@ -170,14 +188,14 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
     );
   }
 
-  Widget _buildEditableTile(IconData icon, String label, TextEditingController controller) {
+  Widget _buildEditableTile(IconData icon, String label, TextEditingController controller, bool isDarkMode) {
     return Container(
       margin: const EdgeInsets.only(bottom: 15),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.grey.shade50,
+        color: isDarkMode ? const Color(0xFF1E1E1E) : Colors.grey.shade50,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.shade100),
+        border: Border.all(color: isDarkMode ? Colors.grey.shade800 : Colors.grey.shade100),
       ),
       child: Row(
         children: [
@@ -191,7 +209,7 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
                 TextField(
                   controller: controller,
                   enabled: _isEditing,
-                  style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: Colors.black),
+                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: isDarkMode ? Colors.white : Colors.black),
                   decoration: const InputDecoration(
                     border: InputBorder.none,
                     isDense: true,
@@ -206,14 +224,14 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
     );
   }
 
-  Widget _buildReadOnlyTile(IconData icon, String label, String value) {
+  Widget _buildReadOnlyTile(IconData icon, String label, String value, bool isDarkMode) {
     return Container(
       margin: const EdgeInsets.only(bottom: 15),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.grey.shade50,
+        color: isDarkMode ? const Color(0xFF1E1E1E) : Colors.grey.shade50,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.shade100),
+        border: Border.all(color: isDarkMode ? Colors.grey.shade800 : Colors.grey.shade100),
       ),
       child: Row(
         children: [
@@ -224,7 +242,7 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
             children: [
               Text(label, style: TextStyle(color: Colors.grey.shade500, fontSize: 11, fontWeight: FontWeight.bold)),
               const SizedBox(height: 4),
-              Text(value, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: Colors.black)),
+              Text(value, style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: isDarkMode ? Colors.white : Colors.black)),
             ],
           ),
         ],
@@ -232,15 +250,18 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
     );
   }
 
-  Widget _buildActionTile(IconData icon, String title) {
+  Widget _buildActionTile(IconData icon, String title, bool isDarkMode) {
     return ListTile(
       contentPadding: EdgeInsets.zero,
       leading: Container(
         padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(color: Colors.grey.shade100, borderRadius: BorderRadius.circular(10)),
-        child: Icon(icon, color: Colors.grey[700], size: 20),
+        decoration: BoxDecoration(
+          color: isDarkMode ? const Color(0xFF1E1E1E) : Colors.grey.shade100, 
+          borderRadius: BorderRadius.circular(10)
+        ),
+        child: Icon(icon, color: isDarkMode ? Colors.white70 : Colors.grey[700], size: 20),
       ),
-      title: Text(title, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500, color: Colors.black)),
+      title: Text(title, style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500, color: isDarkMode ? Colors.white : Colors.black)),
       trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 14, color: Colors.grey),
       onTap: () {},
     );

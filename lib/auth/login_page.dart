@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../screens/user/home_page.dart';
 import '../screens/admin/admin_home_page.dart';
+import '../services/api_service.dart';
 import 'signup_page.dart';
 
 class LoginPage extends StatefulWidget {
@@ -16,6 +16,7 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   final TextEditingController _rollNumberController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  final ApiService _apiService = ApiService();
   bool _isLoading = false;
   bool _obscurePassword = true;
 
@@ -60,36 +61,28 @@ class _LoginPageState extends State<LoginPage> {
         return;
       }
 
-      var userDoc = await FirebaseFirestore.instance.collection('users').doc(rollNumber).get();
+      final userData = await _apiService.login(rollNumber, password);
 
-      if (userDoc.exists) {
-        if (userDoc.data()?['password'] == password) {
-          String name = userDoc.data()?['name'] ?? 'User';
-          
-          final prefs = await SharedPreferences.getInstance();
-          await prefs.setString('user_id', rollNumber);
-          await prefs.setString('user_name', name);
-          await prefs.setString('user_role', 'user');
+      if (userData != null) {
+        String name = userData['name'] ?? 'User';
+        
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('user_id', rollNumber);
+        await prefs.setString('user_name', name);
+        await prefs.setString('user_role', 'user');
 
-          if (mounted) {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                builder: (context) => HomePage(userName: name, userId: rollNumber),
-              ),
-            );
-          }
-        } else {
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Incorrect password')),
-            );
-          }
+        if (mounted) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => HomePage(userName: name, userId: rollNumber),
+            ),
+          );
         }
       } else {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('User not found. Please sign up.')),
+            const SnackBar(content: Text('Invalid roll number or password')),
           );
         }
       }
