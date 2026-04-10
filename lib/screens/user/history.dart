@@ -42,7 +42,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
           title: const Text('Complaint History', style: TextStyle(fontWeight: FontWeight.bold)),
           elevation: 0,
           bottom: TabBar(
-            isScrollable: true,
+            isScrollable: false, // Changed to false to allow centering/filling width
+            tabAlignment: TabAlignment.fill, // Ensures tabs fill the width
             labelColor: Colors.blue.shade800,
             unselectedLabelColor: Colors.grey,
             indicatorColor: Colors.blue.shade800,
