@@ -9,7 +9,6 @@ import 'theme_provider.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
-  // Check if user is already logged in
   final prefs = await SharedPreferences.getInstance();
   final String? userId = prefs.getString('user_id');
   final String? userName = prefs.getString('user_name');
@@ -27,10 +26,14 @@ void main() async {
   }
   
   runApp(
-    ChangeNotifierProvider(
-      create: (context) => ThemeProvider(),
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => UserThemeProvider()),
+        ChangeNotifierProvider(create: (_) => AdminThemeProvider()),
+      ],
       child: MyApp(
         initialHome: initialHome,
+        userRole: userRole,
       ),
     ),
   );
@@ -38,16 +41,23 @@ void main() async {
 
 class MyApp extends StatelessWidget {
   final Widget initialHome;
-  const MyApp({super.key, required this.initialHome});
+  final String? userRole;
+  const MyApp({super.key, required this.initialHome, this.userRole});
 
   @override
   Widget build(BuildContext context) {
-    final themeProvider = Provider.of<ThemeProvider>(context);
+    // Role based theme selection
+    ThemeMode currentThemeMode;
+    if (userRole == 'admin') {
+      currentThemeMode = Provider.of<AdminThemeProvider>(context).themeMode;
+    } else {
+      currentThemeMode = Provider.of<UserThemeProvider>(context).themeMode;
+    }
 
     return MaterialApp(
       title: 'Resolve Desk',
       debugShowCheckedModeBanner: false,
-      themeMode: themeProvider.themeMode,
+      themeMode: currentThemeMode,
       theme: ThemeData(
         useMaterial3: true,
         scaffoldBackgroundColor: Colors.white,
@@ -67,53 +77,13 @@ class MyApp extends StatelessWidget {
             backgroundColor: Colors.blue.shade800,
             foregroundColor: Colors.white,
             elevation: 2,
-            shadowColor: Colors.blue.withValues(alpha: 0.3),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
             ),
           ),
         ),
-        cardTheme: CardThemeData(
-          color: Colors.white,
-          elevation: 4,
-          shadowColor: Colors.black.withValues(alpha: 0.1),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-        ),
       ),
-      darkTheme: ThemeData(
-        useMaterial3: true,
-        scaffoldBackgroundColor: const Color(0xFF121212),
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.blue,
-          primary: Colors.blue.shade300,
-          surface: const Color(0xFF1E1E1E),
-          brightness: Brightness.dark,
-        ),
-        appBarTheme: const AppBarTheme(
-          backgroundColor: Color(0xFF121212),
-          foregroundColor: Colors.white,
-          elevation: 0,
-        ),
-        elevatedButtonTheme: ElevatedButtonThemeData(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.blue.shade700,
-            foregroundColor: Colors.white,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-          ),
-        ),
-        cardTheme: CardThemeData(
-          color: const Color(0xFF1E1E1E),
-          elevation: 4,
-          shadowColor: Colors.black.withValues(alpha: 0.3),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-        ),
-      ),
+      darkTheme: ThemeData.dark(useMaterial3: true),
       home: initialHome,
     );
   }

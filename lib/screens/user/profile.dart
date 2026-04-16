@@ -26,102 +26,117 @@ class ProfileScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final themeProvider = Provider.of<ThemeProvider>(context);
+    // Corrected to use UserThemeProvider
+    final themeProvider = Provider.of<UserThemeProvider>(context);
     final isDarkMode = themeProvider.themeMode == ThemeMode.dark;
 
     return Scaffold(
+      backgroundColor: isDarkMode ? Colors.black : Colors.grey[50],
       appBar: AppBar(
         title: const Text('My Profile', style: TextStyle(fontWeight: FontWeight.bold)),
+        backgroundColor: Colors.transparent,
         elevation: 0,
+        centerTitle: true,
       ),
       body: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: 20),
         child: Column(
           children: [
-            const SizedBox(height: 40),
-            Stack(
-              children: [
-                CircleAvatar(
-                  radius: 65,
-                  backgroundColor: Colors.blue.withValues(alpha: 0.1),
-                  child: Icon(Icons.person, size: 80, color: Colors.blue.shade800),
-                ),
-                Positioned(
-                  bottom: 0,
-                  right: 5,
-                  child: Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: Colors.blue.shade800,
-                      shape: BoxShape.circle,
-                      border: Border.all(color: Theme.of(context).scaffoldBackgroundColor, width: 3),
-                    ),
-                    child: const Icon(Icons.camera_alt, color: Colors.white, size: 20),
-                  ),
-                ),
-              ],
-            ),
             const SizedBox(height: 30),
-            Text(
-              userName,
-              style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 10),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-              decoration: BoxDecoration(
-                color: isDarkMode ? Colors.grey.shade900 : Colors.grey.shade100,
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Text(
-                'Roll No: $userId',
-                style: TextStyle(fontSize: 18, color: isDarkMode ? Colors.white70 : Colors.grey.shade700, fontWeight: FontWeight.w500),
+            Center(
+              child: Column(
+                children: [
+                  Stack(
+                    alignment: Alignment.bottomRight,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.blue.shade100, width: 2),
+                        ),
+                        child: CircleAvatar(
+                          radius: 55,
+                          backgroundColor: Colors.blue.shade50,
+                          child: Icon(Icons.person_rounded, size: 70, color: Colors.blue.shade800),
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Colors.blue.shade800,
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.white, width: 2),
+                        ),
+                        child: const Icon(Icons.camera_alt_rounded, color: Colors.white, size: 18),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 15),
+                  Text(
+                    userName,
+                    style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, letterSpacing: 0.5),
+                  ),
+                  const SizedBox(height: 5),
+                  Text(
+                    'Roll No: $userId',
+                    style: TextStyle(fontSize: 14, color: isDarkMode ? Colors.white70 : Colors.blueGrey, fontWeight: FontWeight.w500),
+                  ),
+                ],
               ),
             ),
             const SizedBox(height: 40),
+
+            _buildSectionTitle("App Settings"),
+            const SizedBox(height: 15),
             
-            // Theme Toggle ListTile
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Card(
-                elevation: 0,
-                color: isDarkMode ? Colors.grey.shade900 : Colors.grey.shade50,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-                child: SwitchListTile(
-                  title: const Text('Dark Mode', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                  secondary: Icon(isDarkMode ? Icons.dark_mode : Icons.light_mode, color: Colors.blue.shade800),
-                  value: isDarkMode,
-                  onChanged: (bool value) {
-                    themeProvider.toggleTheme(value);
-                  },
-                ),
+            Container(
+              decoration: BoxDecoration(
+                color: isDarkMode ? Colors.grey.shade900 : Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 10, offset: const Offset(0, 4)),
+                ],
+              ),
+              child: SwitchListTile(
+                contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+                title: const Text('Dark Mode', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15)),
+                secondary: Icon(isDarkMode ? Icons.dark_mode_rounded : Icons.light_mode_rounded, color: Colors.blue.shade800),
+                value: isDarkMode,
+                onChanged: (bool value) {
+                  themeProvider.toggleTheme(value);
+                },
               ),
             ),
             
             const SizedBox(height: 100),
-            Padding(
-              padding: const EdgeInsets.all(30.0),
-              child: ElevatedButton(
-                onPressed: () => _logout(context),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.transparent,
-                  foregroundColor: Colors.red,
-                  side: const BorderSide(color: Colors.red, width: 2),
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-                  minimumSize: const Size.fromHeight(55),
-                ),
-                child: const Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.logout_rounded),
-                    SizedBox(width: 10),
-                    Text('Logout', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                  ],
+            ElevatedButton.icon(
+              onPressed: () => _logout(context),
+              icon: const Icon(Icons.logout_rounded),
+              label: const Text("Logout", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red.shade50,
+                foregroundColor: Colors.red,
+                elevation: 0,
+                minimumSize: const Size.fromHeight(55),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  side: BorderSide(color: Colors.red.shade100),
                 ),
               ),
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildSectionTitle(String title) {
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: Text(
+        title,
+        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.blueGrey),
       ),
     );
   }

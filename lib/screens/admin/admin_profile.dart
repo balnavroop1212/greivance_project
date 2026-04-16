@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:provider/provider.dart';
 import '../../auth/login_page.dart';
 import '../../theme_provider.dart';
 
@@ -56,18 +56,18 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
-    final themeProvider = Provider.of<ThemeProvider>(context);
+    // Admin side layi AdminThemeProvider use karna
+    final themeProvider = Provider.of<AdminThemeProvider>(context);
+    final isDarkMode = themeProvider.themeMode == ThemeMode.dark;
 
     return Scaffold(
+      backgroundColor: isDarkMode ? Colors.black : Colors.white,
       appBar: AppBar(
         title: const Text('Admin Profile', style: TextStyle(fontWeight: FontWeight.bold)),
         elevation: 0,
         centerTitle: true,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios),
-          onPressed: () => Navigator.pop(context),
-        ),
+        backgroundColor: isDarkMode ? Colors.black : Colors.white,
+        iconTheme: IconThemeData(color: isDarkMode ? Colors.white : Colors.black),
         actions: [
           IconButton(
             icon: Icon(_isEditing ? Icons.check_circle_rounded : Icons.edit_note_rounded, color: Colors.blue.shade800, size: 28),
@@ -86,7 +86,6 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
         ],
       ),
       body: SingleChildScrollView(
-        physics: const BouncingScrollPhysics(),
         padding: const EdgeInsets.symmetric(horizontal: 24),
         child: Column(
           children: [
@@ -110,11 +109,7 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
                   if (_isEditing)
                     Container(
                       padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: Colors.blue.shade800,
-                        shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white, width: 2),
-                      ),
+                      decoration: BoxDecoration(color: Colors.blue.shade800, shape: BoxShape.circle, border: Border.all(color: Colors.white, width: 2)),
                       child: const Icon(Icons.camera_alt_rounded, color: Colors.white, size: 18),
                     ),
                 ],
@@ -135,7 +130,7 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
             Card(
               elevation: 0,
               color: isDarkMode ? const Color(0xFF1E1E1E) : Colors.grey.shade50,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
               child: SwitchListTile(
                 title: const Text('Dark Mode', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
                 secondary: Icon(isDarkMode ? Icons.dark_mode : Icons.light_mode, color: Colors.blue.shade800),
@@ -146,28 +141,19 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
               ),
             ),
 
-            const SizedBox(height: 30),
-            _buildSectionHeader("ACCOUNT CONTROLS"),
-            const SizedBox(height: 10),
-            _buildActionTile(Icons.lock_outline_rounded, "Change Security Password", isDarkMode),
-            _buildActionTile(Icons.notifications_none_rounded, "Notification Settings", isDarkMode),
-
             const SizedBox(height: 50),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: _handleLogout,
-                icon: const Icon(Icons.logout_rounded, size: 20),
-                label: const Text("LOGOUT", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, letterSpacing: 1.1)),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.red.shade50,
-                  foregroundColor: Colors.red,
-                  elevation: 0,
-                  padding: const EdgeInsets.symmetric(vertical: 18),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                    side: BorderSide(color: Colors.red.shade100),
-                  ),
+            ElevatedButton.icon(
+              onPressed: _handleLogout,
+              icon: const Icon(Icons.logout_rounded, size: 20),
+              label: const Text("LOGOUT", style: TextStyle(fontWeight: FontWeight.bold)),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red.shade50,
+                foregroundColor: Colors.red,
+                elevation: 0,
+                minimumSize: const Size.fromHeight(55),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  side: BorderSide(color: Colors.red.shade100),
                 ),
               ),
             ),
@@ -181,10 +167,7 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
   Widget _buildSectionHeader(String title) {
     return Align(
       alignment: Alignment.centerLeft,
-      child: Text(
-        title,
-        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.blueGrey, letterSpacing: 1.2),
-      ),
+      child: Text(title, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.blueGrey, letterSpacing: 1.2)),
     );
   }
 
@@ -210,11 +193,7 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
                   controller: controller,
                   enabled: _isEditing,
                   style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: isDarkMode ? Colors.white : Colors.black),
-                  decoration: const InputDecoration(
-                    border: InputBorder.none,
-                    isDense: true,
-                    contentPadding: EdgeInsets.only(top: 4),
-                  ),
+                  decoration: const InputDecoration(border: InputBorder.none, isDense: true, contentPadding: EdgeInsets.only(top: 4)),
                 ),
               ],
             ),
@@ -247,23 +226,6 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildActionTile(IconData icon, String title, bool isDarkMode) {
-    return ListTile(
-      contentPadding: EdgeInsets.zero,
-      leading: Container(
-        padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          color: isDarkMode ? const Color(0xFF1E1E1E) : Colors.grey.shade100, 
-          borderRadius: BorderRadius.circular(10)
-        ),
-        child: Icon(icon, color: isDarkMode ? Colors.white70 : Colors.grey[700], size: 20),
-      ),
-      title: Text(title, style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500, color: isDarkMode ? Colors.white : Colors.black)),
-      trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 14, color: Colors.grey),
-      onTap: () {},
     );
   }
 }
