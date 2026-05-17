@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../screens/user/home_page.dart';
 import '../screens/admin/admin_home_page.dart';
 import '../services/api_service.dart';
+import '../session_provider.dart';
 import 'signup_page.dart';
 
 class LoginPage extends StatefulWidget {
@@ -43,12 +45,16 @@ class _LoginPageState extends State<LoginPage> {
     });
 
     try {
+      final sessionProvider = Provider.of<SessionProvider>(context, listen: false);
+
       // Check for Admin hardcoded credentials
       if (rollNumber == '1111111' && password == 'admin1') {
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('user_id', rollNumber);
         await prefs.setString('user_name', 'Admin');
         await prefs.setString('user_role', 'admin');
+
+        sessionProvider.setRole('admin');
 
         if (mounted) {
           Navigator.pushReplacement(
@@ -70,6 +76,8 @@ class _LoginPageState extends State<LoginPage> {
         await prefs.setString('user_id', rollNumber);
         await prefs.setString('user_name', name);
         await prefs.setString('user_role', 'user');
+
+        sessionProvider.setRole('user');
 
         if (mounted) {
           Navigator.pushReplacement(
