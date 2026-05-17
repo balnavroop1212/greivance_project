@@ -62,11 +62,11 @@ class _HistoryScreenState extends State<HistoryScreen> {
                     color: isDarkMode ? Colors.grey.shade900 : Colors.white,
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.05),
+                        color: Colors.black.withOpacity(0.05),
                         blurRadius: 10,
                       )
                     ],
-                    border: Border.all(color: Colors.black.withValues(alpha: 0.05), width: 0.5),
+                    border: Border.all(color: Colors.black.withOpacity(0.05), width: 0.5),
                   ),
                   child: Icon(
                     Icons.arrow_back_ios_new_rounded, 
@@ -90,14 +90,15 @@ class _HistoryScreenState extends State<HistoryScreen> {
             labelColor: primaryPurple,
             unselectedLabelColor: isDarkMode ? Colors.white38 : Colors.grey.shade400,
             indicatorSize: TabBarIndicatorSize.tab,
-            labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+            labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
             indicatorWeight: 3,
             dividerColor: Colors.transparent,
-            isScrollable: true,
+            isScrollable: false,
+            tabAlignment: TabAlignment.fill,
             tabs: const [
               Tab(text: 'Total'),
               Tab(text: 'Pending'),
-              Tab(text: 'In Progress'),
+              Tab(text: 'Progress'),
               Tab(text: 'Resolved'),
             ],
           ),
@@ -127,7 +128,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.history_outlined, size: 80, color: Colors.grey.withValues(alpha: 0.2)),
+            Icon(Icons.history_outlined, size: 80, color: Colors.grey.withOpacity(0.2)),
             const SizedBox(height: 16),
             Text(
               'No ${status ?? "total"} complaints found',
@@ -158,7 +159,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
             borderRadius: BorderRadius.circular(20),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: isDarkMode ? 0.3 : 0.03),
+                color: Colors.black.withOpacity(isDarkMode ? 0.3 : 0.03),
                 blurRadius: 15,
                 offset: const Offset(0, 8),
               ),
@@ -173,7 +174,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
               width: 50,
               height: 50,
               decoration: BoxDecoration(
-                color: _getCategoryColor(category).withValues(alpha: 0.1),
+                color: _getCategoryColor(category).withOpacity(0.1),
                 borderRadius: BorderRadius.circular(14),
               ),
               child: Icon(_getIconForCategory(category), color: _getCategoryColor(category), size: 24),
@@ -214,9 +215,9 @@ class _HistoryScreenState extends State<HistoryScreen> {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: isSmall ? 10 : 12, vertical: isSmall ? 6 : 8),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.08),
+        color: color.withOpacity(0.08),
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: color.withValues(alpha: 0.15)),
+        border: Border.all(color: color.withOpacity(0.15)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -264,14 +265,13 @@ class _HistoryScreenState extends State<HistoryScreen> {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) => Container(
-        height: MediaQuery.of(context).size.height * 0.8,
+        height: MediaQuery.of(context).size.height * 0.9,
         decoration: BoxDecoration(
           color: isDarkMode ? const Color(0xFF1E1E1E) : const Color(0xFFFBFBFF),
           borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
         ),
         padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Center(
               child: Container(
@@ -284,72 +284,100 @@ class _HistoryScreenState extends State<HistoryScreen> {
               )
             ),
             const SizedBox(height: 30),
-            
-            // Header Section: Title and Status Chip with fix for overlap
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                color: isDarkMode ? const Color(0xFF262626) : Colors.white,
-                borderRadius: BorderRadius.circular(24),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: isDarkMode ? 0.3 : 0.02),
-                    blurRadius: 15,
-                    offset: const Offset(0, 8),
-                  )
-                ],
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    crossAxisAlignment: CrossAxisAlignment.center, // Centered to match design
-                    children: [
-                      Expanded(
+            Expanded(
+              child: SingleChildScrollView(
+                physics: const BouncingScrollPhysics(),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(24),
+                      decoration: BoxDecoration(
+                        color: isDarkMode ? const Color(0xFF262626) : Colors.white,
+                        borderRadius: BorderRadius.circular(24),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(isDarkMode ? 0.3 : 0.02),
+                            blurRadius: 15,
+                            offset: const Offset(0, 8),
+                          )
+                        ],
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  data['subCategory'] ?? data['category'] ?? 'Complaint Detail', 
+                                  style: TextStyle(
+                                    fontSize: 24, 
+                                    fontWeight: FontWeight.bold,
+                                    color: isDarkMode ? Colors.white : const Color(0xFF1A1A1A)
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              _buildStatusChip(data['status'] ?? 'Pending'),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Filed on: $date', 
+                            style: TextStyle(color: isDarkMode ? Colors.white38 : Colors.black38, fontSize: 14)
+                          ),
+                        ],
+                      ),
+                    ),
+                    
+                    const SizedBox(height: 24),
+                    _buildDetailSection('Category', data['category'] ?? 'General', isDarkMode),
+                    const SizedBox(height: 16),
+                    _buildDetailSection('Description', data['description'] ?? 'No description provided.', isDarkMode, isExpanded: true),
+                    const SizedBox(height: 16),
+
+                    if (data['imageUrl'] != null && data['imageUrl'].toString().isNotEmpty) ...[
+                      Padding(
+                        padding: const EdgeInsets.only(left: 4.0, bottom: 12.0),
                         child: Text(
-                          data['subCategory'] ?? data['category'] ?? 'Complaint Detail', 
-                          style: TextStyle(
-                            fontSize: 24, 
-                            fontWeight: FontWeight.bold,
-                            color: isDarkMode ? Colors.white : const Color(0xFF1A1A1A)
+                          'Attachment', 
+                          style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: isDarkMode ? Colors.white70 : Colors.black87)
+                        ),
+                      ),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(24),
+                        child: Container(
+                          width: double.infinity,
+                          constraints: const BoxConstraints(maxHeight: 300),
+                          decoration: BoxDecoration(
+                            color: isDarkMode ? Colors.grey.shade900 : Colors.grey.shade100,
+                          ),
+                          child: Image.network(
+                            data['imageUrl'],
+                            width: double.infinity,
+                            fit: BoxFit.contain,
+                            loadingBuilder: (context, child, progress) => progress == null ? child : const Center(child: CircularProgressIndicator()),
+                            errorBuilder: (context, error, stackTrace) => Container(
+                              height: 150,
+                              width: double.infinity,
+                              color: isDarkMode ? Colors.grey.shade900 : Colors.grey.shade100,
+                              child: const Icon(Icons.broken_image_outlined, size: 40, color: Colors.grey),
+                            ),
                           ),
                         ),
                       ),
-                      const SizedBox(width: 12), // Essential space to prevent overlap
-                      _buildStatusChip(data['status'] ?? 'Pending'),
+                      const SizedBox(height: 32),
                     ],
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Filed on: $date', 
-                    style: TextStyle(color: isDarkMode ? Colors.white38 : Colors.black38, fontSize: 14)
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
             
-            const SizedBox(height: 24),
-            
-            // Category Box
-            _buildDetailSection('Category', data['category'] ?? 'General', isDarkMode),
-            
-            const SizedBox(height: 16),
-            
-            // Description Section
-            Expanded(
-              child: _buildDetailSection(
-                'Description', 
-                data['description'] ?? 'No description provided.',
-                isDarkMode,
-                isExpanded: true,
-              ),
-            ),
-            
-            const SizedBox(height: 24),
-            
-            // Close Button
+            const SizedBox(height: 12),
             SizedBox(
               width: double.infinity,
               height: 58,
@@ -379,7 +407,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: isDarkMode ? 0.3 : 0.02),
+            color: Colors.black.withOpacity(isDarkMode ? 0.3 : 0.02),
             blurRadius: 15,
             offset: const Offset(0, 8),
           )
@@ -387,25 +415,11 @@ class _HistoryScreenState extends State<HistoryScreen> {
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Text(
-            label, 
-            style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: isDarkMode ? Colors.white38 : Colors.black45)
-          ),
+          Text(label, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: isDarkMode ? Colors.white38 : Colors.black38)),
           const SizedBox(height: 10),
-          isExpanded 
-            ? Expanded(
-                child: SingleChildScrollView(
-                  child: Text(
-                    value, 
-                    style: TextStyle(fontSize: 15, color: isDarkMode ? Colors.white70 : Colors.black87, height: 1.5)
-                  ),
-                ),
-              )
-            : Text(
-                value, 
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: isDarkMode ? Colors.white : const Color(0xFF1A1A1A))
-              ),
+          Text(value, style: TextStyle(fontSize: 16, fontWeight: isExpanded ? FontWeight.normal : FontWeight.bold, color: isDarkMode ? Colors.white : const Color(0xFF1A1A1A), height: 1.5)),
         ],
       ),
     );
