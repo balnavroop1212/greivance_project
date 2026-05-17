@@ -4,7 +4,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'auth/login_page.dart';
 import 'screens/user/home_page.dart';
 import 'screens/admin/admin_home_page.dart';
-import 'theme_provider.dart';
+import 'screens/user/UserTheme.dart';
+import 'screens/admin/AdminTheme.dart';
+import 'session_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -14,6 +16,9 @@ void main() async {
   final String? userName = prefs.getString('user_name');
   final String? userRole = prefs.getString('user_role');
   
+  final sessionProvider = SessionProvider();
+  sessionProvider.setRole(userRole);
+
   Widget initialHome;
   if (userId != null && userName != null) {
     if (userRole == 'admin') {
@@ -30,10 +35,10 @@ void main() async {
       providers: [
         ChangeNotifierProvider(create: (_) => UserThemeProvider()),
         ChangeNotifierProvider(create: (_) => AdminThemeProvider()),
+        ChangeNotifierProvider.value(value: sessionProvider),
       ],
       child: MyApp(
         initialHome: initialHome,
-        userRole: userRole,
       ),
     ),
   );
@@ -41,16 +46,17 @@ void main() async {
 
 class MyApp extends StatelessWidget {
   final Widget initialHome;
-  final String? userRole;
-  const MyApp({super.key, required this.initialHome, this.userRole});
+  const MyApp({super.key, required this.initialHome});
 
   @override
   Widget build(BuildContext context) {
-    // Role based theme selection
-    ThemeMode currentThemeMode;
-    if (userRole == 'admin') {
+    final currentRole = Provider.of<SessionProvider>(context).currentRole;
+    
+    ThemeMode currentThemeMode = ThemeMode.light;
+    
+    if (currentRole == 'admin') {
       currentThemeMode = Provider.of<AdminThemeProvider>(context).themeMode;
-    } else {
+    } else if (currentRole == 'user') {
       currentThemeMode = Provider.of<UserThemeProvider>(context).themeMode;
     }
 
@@ -82,8 +88,38 @@ class MyApp extends StatelessWidget {
             ),
           ),
         ),
+        cardTheme: CardThemeData(
+          color: Colors.white,
+          elevation: 4,
+          shadowColor: Colors.black.withValues(alpha: 0.1),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+        ),
       ),
-      darkTheme: ThemeData.dark(useMaterial3: true),
+      darkTheme: ThemeData(
+        useMaterial3: true,
+        scaffoldBackgroundColor: const Color(0xFF121212),
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: Colors.blue,
+          primary: Colors.blue.shade300,
+          surface: const Color(0xFF1E1E1E),
+          brightness: Brightness.dark,
+        ),
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Color(0xFF121212),
+          foregroundColor: Colors.white,
+          elevation: 0,
+        ),
+        cardTheme: CardThemeData(
+          color: const Color(0xFF1E1E1E),
+          elevation: 4,
+          shadowColor: Colors.black.withValues(alpha: 0.3),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+        ),
+      ),
       home: initialHome,
     );
   }
